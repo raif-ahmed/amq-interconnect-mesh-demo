@@ -54,7 +54,7 @@ data:
         port: 55673
         # saslMechanisms: ANONYMOUS
         saslMechanisms: EXTERNAL
-        sslProfile: inter_router_tls
+        sslProfile: service_tls
         verifyHostname: false
 
         role: edge

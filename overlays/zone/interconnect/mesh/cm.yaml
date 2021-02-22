@@ -47,7 +47,7 @@ data:
         port: 55673
         role: edge
         # authenticatePeer: no
-        sslProfile: inter_router_tls
+        sslProfile: service_tls
         authenticatePeer: yes
         requireSsl: true
         saslMechanisms: EXTERNAL
