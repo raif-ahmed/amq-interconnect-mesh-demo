@@ -48,8 +48,9 @@ spec:
           value: "amq-interconnect-edge"
         - name: QDROUTERD_CONF
           value: "/etc/qpid-dispatch/qdrouterd.conf"
-        # - name: QDROUTERD_AUTO_MESH_DISCOVERY
-        #   value: "QUERY"
+          # https://github.com/jboss-container-images/amq-interconnect-1-openshift-image/pull/10
+        - name: QDROUTERD_AUTO_MESH_DISCOVERY
+          value: "QUERY"
         - name: QDROUTERD_AUTO_CREATE_SASLDB_SOURCE
           value: "/etc/qpid-dispatch-users"
         - name: QDROUTERD_AUTO_CREATE_SASLDB_PATH
@@ -93,7 +94,7 @@ spec:
       volumes:
       - name: certs
         secret:
-          secretName: amq-interconnect-cert
+          secretName: amq-interconnect-mesh-cert
       - name: broker-cert
         secret:
           secretName: broker-router-cert

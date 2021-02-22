@@ -1,6 +1,9 @@
 AMQ_BROKER_ROUTE_URL=zone-broker-amqps-0-svc-rte-broker-with-interconnect-mesh.apps.cluster-107d.gcp.testdrive.openshift.com
 AMQ_BROKER_SVC_URL=zone-broker-amqps-0-svc
+
 AMQ_INTERCONNECT_SVC_URL=*.broker-with-interconnect-mesh.svc.cluster.local
+AMQ_INTERCONNECT_ROUTE_URL=DNS:amq-interconnect-edge-console-broker-with-interconnect-mesh.apps.cluster-107d.gcp.testdrive.openshift.com,DNS:amq-interconnect-mesh-console-broker-with-interconnect-mesh.apps.cluster-107d.gcp.testdrive.openshift.com
+
 AMQ_BROKER_KEYSTORE_PASSWORD=passw0rd
 AMQ_CLIENT_KEYSTORE_PASSWORD=passw0rd
 
@@ -24,7 +27,7 @@ openssl x509 -req -in crt/internal-certs/ca-csr.pem -signkey crt/internal-certs/
 openssl genrsa -out crt/internal-certs/tls.key 2048
 
 # Create a certificate signing request for the router.
-openssl req -new -batch -subj "/CN=${AMQ_INTERCONNECT_SVC_URL}" -key crt/internal-certs/tls.key -out crt/internal-certs/server-csr.pem
+openssl req -new -batch -subj "/CN=${AMQ_INTERCONNECT_SVC_URL}" -key crt/internal-certs/tls.key -out crt/internal-certs/server-csr.pem -addext "subjectAltName = ${AMQ_INTERCONNECT_ROUTE_URL}"
 
 # Sign the certificate using the CA.
 openssl x509 -req -in crt/internal-certs/server-csr.pem -CA crt/internal-certs/ca.crt -CAkey crt/internal-certs/ca-key.pem -out crt/internal-certs/tls.crt -CAcreateserial

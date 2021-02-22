@@ -5,8 +5,8 @@ metadata:
 data:
   qdrouterd.conf: |-
     router {
-        # mode: edge
-        mode: interior
+        # mode: interior
+        mode: edge
         id: EdgeRouter.${HOSTNAME}
         workerThreads:4
         defaultDistribution: unavailable
@@ -60,22 +60,7 @@ data:
         role: edge
 
     }
-    connector {
-        name: local-amq-broker
-        host: zone-broker-amqps-0-svc
-        # port: amqps
-        # saslMechanisms: EXTERNAL
-        # sslProfile: broker_tls
 
-        host: zone-broker-amqp-0-svc
-        port: 5672
-        saslMechanisms: PLAIN
-        saslUsername: admin
-        saslPassword: admin
-
-        role: route-container
-        verifyHostname: false
-    }
 
 
     sslProfile {

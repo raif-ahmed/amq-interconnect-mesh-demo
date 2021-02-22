@@ -24,7 +24,8 @@ then generate the certificates.
 
 [source,bash]
 ----
-./overlays/zone/generate-crts.sh
+cd overlays/zone/
+./generate-crts.sh
 ----
 
 [source,bash]

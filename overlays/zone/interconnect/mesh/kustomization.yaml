@@ -19,3 +19,4 @@ secretGenerator:
 - name: policies-mesh
   files:
     - policies/default.json
+    - policies/edge.json
