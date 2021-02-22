@@ -1,0 +1,10 @@
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: amq-interconnect-edge-sasl-config
+data:
+  qdrouterd.conf: |-
+    pwcheck_method: auxprop
+    auxprop_plugin: sasldb
+    sasldb_path: /opt/interconnect/etc/qdrouterd.sasldb
+    mech_list: SCRAM-SHA-1 DIGEST-MD5 PLAIN EXTERNAL

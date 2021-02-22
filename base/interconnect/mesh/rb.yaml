@@ -1,0 +1,9 @@
+kind: RoleBinding
+apiVersion: v1
+metadata:
+  name: amq-interconnect-mesh-view
+subjects:
+- kind: ServiceAccount
+  name: amq-interconnect-mesh
+roleRef:
+  name: "view"

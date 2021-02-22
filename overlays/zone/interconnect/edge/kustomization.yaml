@@ -1,0 +1,31 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+generatorOptions:
+ disableNameSuffixHash: true
+
+
+bases:
+- ../../../../base/interconnect/edge
+
+resources:
+  - cm.yaml
+
+secretGenerator:
+  #https://github.com/jboss-container-images/amq-interconnect-1-openshift-image/pull/20
+- name: users-secret-edge
+  envs:
+  - users/users.properties
+- name: policies-edge
+  files:
+    - policies/default.json
+
+# I'm changing the names to match the application name.
+# patches:
+# - target:
+#     kind: DeploymentConfig
+#     name: amq-interconnect
+#   patch: |-
+#     - op: replace
+#       path: /spec/template/spec/containers/0/env/0/value
+#       value: amq-interconnect-edge

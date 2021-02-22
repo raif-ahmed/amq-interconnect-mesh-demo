@@ -1,0 +1,115 @@
+apiVersion: broker.amq.io/v2alpha4
+kind: ActiveMQArtemis
+metadata:
+  name: zone-broker
+spec:
+  version: 7.8.0
+  deploymentPlan:
+    size: 1
+    image: registry.redhat.io/amq7/amq-broker:7.8
+    requireLogin: true
+    persistenceEnabled: true
+    messageMigration: true
+    journalType: nio
+    resources:
+      limits:
+        cpu: 500m
+        memory: 1024Mi
+      requests:
+        cpu: 250m
+        memory: 512Mi
+    storage:
+      size: "4Gi"
+    jolokiaAgentEnabled: false
+    managementRBACEnabled: true
+  console:
+    expose: true
+  adminUser: admin
+  adminPassword: admin
+  acceptors:
+    - name: amqps
+      protocols: amqps
+      port: 5671
+      sslEnabled: true
+      enabledProtocols: TLSv1,TLSv1.1,TLSv1.2
+      # enabledProtocols: TLSv1.2
+      # needClientAuth: true
+      # wantClientAuth: true
+      verifyHost: false
+      sslProvider: JDK
+      # sniHost: localhost
+      expose: true
+      # anycastPrefix: jms.queue.
+      # multicastPrefix: /topic/
+    - name: amqp
+      protocols: amqp
+      port: 5672
+      sslEnabled: false
+      expose: true
+      # anycastPrefix: jms.queue.
+      # multicastPrefix: /topic/
+  connectors:
+    - name: connector
+      # host: localhost
+      port: 22222
+      sslEnabled: true
+      # enabledProtocols: TLSv1,TLSv1.1,TLSv1.2
+      enabledProtocols: TLSv1.2
+      needClientAuth: true
+      wantClientAuth: true
+      verifyHost: false
+      sslProvider: JDK
+      #sniHost: localhost
+      expose: true
+  upgrades:
+      enabled: false
+      minor: false
+  addressSettings:
+    applyRule: replace_all
+    addressSetting:
+    - match: '#'
+      autoCreateDeadLetterResources: true
+      deadLetterAddress: DLQ
+      defaultConsumerWindowSize: 2048000
+      autoCreateExpiryResources: true
+      expiryAddress: ExpiryQueue
+      # -1 means never expires
+      #expiryDelay: -1
+      # the expiration time in milliseconds that will be used for messages which are using the default expiration time.
+      # i.e This only valid for message which did not explicity set their expiration, (7200000 or 2 Hours)
+      expiryDelay: 7200000
+      # the time (in ms) to wait before redelivering a cancelled message
+      redeliveryDelay: 5000
+      redeliveryDelayMultiplier: 2
+      # redeliveryDelay * redeliveryDelayMultiplier <= maxRedeliveryDelay
+      maxRedeliveryDelay: 50000
+      # how many times to attempt to deliver a message before sending to dead letter address
+      maxDeliveryAttempts: 5
+      #default maximum memory size of any address is (xx)Mb, after that the addressFullPolicy applies
+      maxSizeBytes: 128Mb
+      # Each address has an individual folder where messages are stored in multiple files (page files).
+      # Each file size will be up to max configured size (page-size-bytes), Normally pageSize should be significantly smaller than maxSize
+      pageSizeBytes: 2Mb
+      #The number of page files to keep in memory to optimize I/O
+      pageMaxCacheSize: 3
+      addressFullPolicy: "PAGE"
+      # defines the delay in milliseconds after the last consumer is closed on a queue before redistributing messages from that queue to other nodes of the cluster which do have matching consumers.
+      # so the value 0 would enable instant (no delay) redistribution for all JMS queues and topic subscriptions
+      # Already the Operator is "Setting redistribution-delay to zero.", if we try to set it it give an error
+      # redistributionDelay: 0
+      #
+      slowConsumerPolicy: "NOTIFY"
+      slowConsumerCheckPeriod: 10
+
+      # how many days to keep message counter history for this address
+      messageCounterHistoryDayLimit: 10
+
+      autoCreateAddresses: true
+      autoDeleteAddresses: false
+
+      autoCreateJmsQueues: true
+      autoDeleteJmsQueues: false
+      autoCreateJmsTopics: true
+      autoDeleteJmsTopics: false
+      autoCreateQueues: true
+      autoDeleteQueues: true

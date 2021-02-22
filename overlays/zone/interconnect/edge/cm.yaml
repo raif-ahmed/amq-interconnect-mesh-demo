@@ -1,0 +1,171 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: amq-interconnect-edge
+data:
+  qdrouterd.conf: |-
+    router {
+        # mode: interior
+        # id: EdgeRouter.publisher
+        # defaultDistribution: multicast
+        # saslConfigDir: /etc/sasl2/
+
+        mode: edge
+        id: EdgeRouter.${HOSTNAME}
+        workerThreads:4
+        defaultDistribution: unavailable
+        allowResumableLinkRoute:false
+        timestampsInUTC:true
+        saslConfigDir: /etc/sasl2/
+
+    }
+    # only allow anonymous connections over localhost
+    listener {
+        host: localhost
+        port: amqp
+        authenticatePeer: no
+        saslMechanisms: ANONYMOUS
+    }
+    listener {
+        host: 0.0.0.0
+        port: amqp
+        authenticatePeer: yes
+    }
+    listener {
+        host: 0.0.0.0
+        port: amqps
+        sslProfile: service_tls
+        authenticatePeer: yes
+        requireSsl: true
+        saslMechanisms: EXTERNAL
+    }
+    listener {
+        host: 0.0.0.0
+        port: 8080
+        authenticatePeer: yes
+        saslMechanisms: PLAIN SCRAM-SHA-1
+        # authenticatePeer: no
+        # saslMechanisms: ANONYMOUS
+        role: normal
+        sslProfile: console_tls
+        http: true
+        httpRootDir: /usr/share/qpid-dispatch/console
+    }
+
+    connector {
+        name: interior-router
+        host: amq-interconnect-mesh
+        port: 55673
+        # saslMechanisms: ANONYMOUS
+        saslMechanisms: EXTERNAL
+        sslProfile: inter_router_tls
+        verifyHostname: false
+
+        role: edge
+
+    }
+    connector {
+        name: local-amq-broker
+        host: zone-broker-amqps-0-svc
+        # port: amqps
+        # saslMechanisms: EXTERNAL
+        # sslProfile: broker_tls
+
+        host: zone-broker-amqp-0-svc
+        port: 5672
+        saslMechanisms: PLAIN
+        saslUsername: admin
+        saslPassword: admin
+
+        role: route-container
+        verifyHostname: false
+    }
+
+
+    sslProfile {
+        name: inter_router_tls
+        certFile: /etc/qpid-dispatch-certs/inter-router/tls.crt
+        privateKeyFile: /etc/qpid-dispatch-certs/inter-router/tls.key
+        caCertFile: /etc/qpid-dispatch-certs/inter-router/ca.crt
+    }
+    sslProfile {
+        name: service_tls
+        certFile: /etc/qpid-dispatch-certs/normal/tls.crt
+        privateKeyFile: /etc/qpid-dispatch-certs/normal/tls.key
+        caCertFile: /etc/qpid-dispatch-certs/normal/ca.crt
+    }
+    sslProfile {
+        name: console_tls
+        certFile: /etc/qpid-dispatch-certs/normal/tls.crt
+        privateKeyFile: /etc/qpid-dispatch-certs/normal/tls.key
+    }
+    sslProfile {
+        name: broker_tls
+        # certFile: /etc/qpid-dispatch-certs/broker/tls.crt
+        # privateKeyFile: /etc/qpid-dispatch-certs/broker/tls.key
+        caCertFile: /etc/qpid-dispatch-certs/broker/ca.crt
+    }
+    address {
+        prefix: closest
+        distribution: closest
+    }
+    address {
+        prefix: multicast
+        distribution: multicast
+    }
+    address {
+        prefix: unicast
+        distribution: closest
+    }
+    address {
+        prefix: exclusive
+        distribution: closest
+    }
+    address {
+        prefix: broadcast
+        distribution: multicast
+    }
+    address {
+        prefix: demo.messaging.queue
+        # pattern:
+        # Routing messages through a broker queue
+        waypoint: yes
+        distribution: balanced
+    }
+    address {
+        prefix: demo.messaging.topic
+        # Routing messages through a broker Topic
+        waypoint: yes
+        distribution: multicast
+    }
+    autoLink {
+        addr: demo.messaging.queue.q1
+        connection: local-amq-broker
+        dir: out
+    }
+    autoLink {
+        addr: demo.messaging.queue.q1
+        connection: local-amq-broker
+        dir: in
+    }
+    autoLink {
+        addr: demo.messaging.topic.t1
+        connection: local-amq-broker
+        dir: out
+    }
+    autoLink {
+        addr: demo.messaging.topic.t1
+        connection: local-amq-broker
+        dir: in
+    }
+    policy {
+        enableVhostPolicy: true
+        enableVhostNamePatterns: true
+        policyDir: /etc/qpid-dispatch-policies
+        defaultVhost: $default
+    }
+    log {
+        module: DEFAULT
+        enable: debug
+        includeTimestamp: true
+    }

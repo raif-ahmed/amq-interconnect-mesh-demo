@@ -1,0 +1,121 @@
+kind: DeploymentConfig
+apiVersion: v1
+metadata:
+  name: amq-interconnect-mesh
+spec:
+  strategy:
+    type: Rolling
+    rollingParams:
+      maxSurge: 0
+  triggers:
+  # - type: ImageChange
+  #   imageChangeParams:
+  #     automatic: true
+  #     containerNames:
+  #     - "amq-interconnect"
+  #     from:
+  #       kind: ImageStreamTag
+  #       namespace: "openshift"
+  #       name: amq-interconnect:latest
+  - type: ConfigChange
+  replicas: 1
+  selector:
+    deploymentConfig: "amq-interconnect-mesh"
+  template:
+    metadata:
+      name: "amq-interconnect-mesh"
+      labels:
+        deploymentConfig: "amq-interconnect-mesh"
+        application: amq-interconnect-mesh
+    spec:
+      serviceAccountName: amq-interconnect-mesh
+      terminationGracePeriodSeconds: 60
+      containers:
+      - name: "amq-interconnect"
+        image: registry.redhat.io/amq7/amq-interconnect:latest
+        ports:
+        - name: amqp
+          containerPort: 5672
+          protocol: TCP
+        - name: amqps
+          containerPort: 5671
+          protocol: TCP
+        - name: http
+          containerPort: 8080
+          protocol: TCP
+        - name: inter
+          containerPort: 55672
+          protocol: TCP
+        - name: edge
+          containerPort: 55673
+          protocol: TCP
+        env:
+        - name: APPLICATION_NAME
+          value: "amq-interconnect-mesh"
+        - name: QDROUTERD_CONF
+          value: "/etc/qpid-dispatch/qdrouterd.conf"
+        # - name: QDROUTERD_AUTO_MESH_DISCOVERY
+        #   value: "QUERY"
+        - name: QDROUTERD_AUTO_CREATE_SASLDB_SOURCE
+          value: "/etc/qpid-dispatch-users"
+        - name: QDROUTERD_AUTO_CREATE_SASLDB_PATH
+          value: "/opt/interconnect/etc/qdrouterd.sasldb"
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: POD_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.podIP
+          image: ${IMAGE_NAME}
+        volumeMounts:
+        - name: certs
+          readOnly: true
+          mountPath: /etc/qpid-dispatch-certs/normal/
+        - name: broker-cert
+          readOnly: true
+          mountPath: /etc/qpid-dispatch-certs/broker/
+        - name: inter-router-certs
+          readOnly: true
+          mountPath: /etc/qpid-dispatch-certs/inter-router/
+        - name: config-volume
+          mountPath: /etc/qpid-dispatch/
+        - name: sasl-config
+          mountPath: /etc/sasl2/
+        - name: users
+          mountPath: /etc/qpid-dispatch-users
+        - name: policies
+          mountPath: /etc/qpid-dispatch-policies/
+        terminationGracePeriodSeconds: 60
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 8080
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 8080
+      volumes:
+      - name: certs
+        secret:
+          secretName: amq-interconnect-cert
+      - name: broker-cert
+        secret:
+          secretName: broker-router-cert
+      - name: inter-router-certs
+        secret:
+          secretName: inter-router-certs
+      - name: config-volume
+        configMap:
+          name: amq-interconnect-mesh
+      - name: sasl-config
+        configMap:
+          name: amq-interconnect-mesh-sasl-config
+      - name: users
+        secret:
+          secretName: users-secret-mesh
+      - name: policies
+        secret:
+          secretName: policies-mesh
+      imagePullPolicy: Always

@@ -1,0 +1,26 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: amq-interconnect-mesh
+  annotations:
+    description: The router's AMQP port.
+    service.alpha.openshift.io/serving-cert-secret-name: amq-interconnect-mesh-cert
+spec:
+  ports:
+  - port: 5672
+    name: amqp
+    targetPort: 5672
+  - port: 5671
+    name: amqps
+    targetPort: 5671
+  - port: 8080
+    name: http
+    targetPort: 8080
+  - port: 55672
+    name: inter-router
+    targetPort: 55672
+  - port: 55673
+    name: edge
+    targetPort: 55673
+  selector:
+    deploymentConfig: amq-interconnect-mesh

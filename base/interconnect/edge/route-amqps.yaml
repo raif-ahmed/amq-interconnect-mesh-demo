@@ -1,0 +1,12 @@
+kind: Route
+apiVersion: v1
+metadata:
+  name: amq-interconnect-edge-amqps
+spec:
+  port:
+    targetPort: amqps
+  tls:
+    termination: passthrough
+  to:
+    kind: Service
+    name: amq-interconnect-edge

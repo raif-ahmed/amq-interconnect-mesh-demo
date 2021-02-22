@@ -1,0 +1,25 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+generatorOptions:
+  disableNameSuffixHash: true
+
+# https://access.redhat.com/documentation/en-us/red_hat_amq/2020.q4/html/deploying_amq_broker_on_openshift/deploying-broker-on-ocp-using-operator_broker-ocp
+# this will deploy the operator in your namespace
+resources:
+- service_account.yaml
+- role.yaml
+- role_binding.yaml
+- operator.yaml
+- crds/broker_activemqartemis_crd.yaml
+- crds/broker_activemqartemisaddress_crd.yaml
+- crds/broker_activemqartemisscaledown_crd.yaml
+
+
+  # https://access.redhat.com/RegistryAuthentication
+  # https://access.redhat.com/terms-based-registry/
+secretGenerator:
+- files:
+  - .dockerconfigjson=redhat-pull-config.json
+  name: redhat-pull-secret
+  type: kubernetes.io/dockerconfigjson

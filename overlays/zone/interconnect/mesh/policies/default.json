@@ -1,0 +1,28 @@
+[
+    ["vhost", {
+        "hostname": "$default",
+        "maxConnections": 10000,
+        "maxConnectionsPerUser": 100,
+        "maxConnectionsPerHost": 100,
+        "allowUnknownUser": true,
+        "groups": {
+            "admin": {
+                "users": ["admin@amq-interconnect-mesh"],
+                "remoteHosts": ["*"],
+                "sources": "*",
+                "targets": "*",
+                "allowAnonymousSender": true,
+                "allowDynamicSource": true
+            },
+            "developers": {
+                "users": ["dev@amq-interconnect-mesh"],
+                "remoteHosts": "*",
+                "sources": ["myqueue1", "myqueue2"],
+                "targets": ["myqueue1", "myqueue2"]
+            },
+            "$default": {
+                "remoteHosts": "*"
+            }
+        }
+    }]
+]

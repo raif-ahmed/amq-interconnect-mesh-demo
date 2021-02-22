@@ -1,0 +1,9 @@
+kind: RoleBinding
+apiVersion: v1
+metadata:
+  name: amq-interconnect-edge-view
+subjects:
+- kind: ServiceAccount
+  name: amq-interconnect-edge
+roleRef:
+  name: "view"
