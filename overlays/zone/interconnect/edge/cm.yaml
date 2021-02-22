@@ -5,12 +5,8 @@ metadata:
 data:
   qdrouterd.conf: |-
     router {
-        # mode: interior
-        # id: EdgeRouter.publisher
-        # defaultDistribution: multicast
-        # saslConfigDir: /etc/sasl2/
-
-        mode: edge
+        # mode: edge
+        mode: interior
         id: EdgeRouter.${HOSTNAME}
         workerThreads:4
         defaultDistribution: unavailable
@@ -125,7 +121,7 @@ data:
         prefix: broadcast
         distribution: multicast
     }
-    
+
     policy {
         enableVhostPolicy: true
         enableVhostNamePatterns: true

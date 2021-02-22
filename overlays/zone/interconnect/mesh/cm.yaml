@@ -5,9 +5,6 @@ metadata:
 data:
   qdrouterd.conf: |-
     router {
-        # mode: interior
-        # id: Router.${HOSTNAME}
-        # saslConfigDir: /etc/sasl2/
         mode: interior
         id: InteriorRouter.${HOSTNAME}
         workerThreads:4
