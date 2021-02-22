@@ -50,7 +50,7 @@ data:
         sslProfile: inter_router_tls
         authenticatePeer: yes
         requireSsl: true
-        saslMechanisms: EXTERNAL
+        saslMechanisms: EXTERNAL PLAIN
         role: edge
         policyVhost: edge
     }
@@ -65,7 +65,22 @@ data:
         http: true
         httpRootDir: /usr/share/qpid-dispatch/console
     }
+    connector {
+        name: local-amq-broker
+        host: zone-broker-amqps-0-svc
+        # port: amqps
+        # saslMechanisms: EXTERNAL
+        # sslProfile: broker_tls
 
+        host: zone-broker-amqp-0-svc
+        port: 5672
+        saslMechanisms: PLAIN
+        saslUsername: admin
+        saslPassword: admin
+
+        role: route-container
+        verifyHostname: false
+    }
     sslProfile {
         name: inter_router_tls
         certFile: /etc/qpid-dispatch-certs/inter-router/tls.crt
