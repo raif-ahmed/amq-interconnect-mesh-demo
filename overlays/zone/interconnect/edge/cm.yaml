@@ -125,39 +125,7 @@ data:
         prefix: broadcast
         distribution: multicast
     }
-    address {
-        prefix: demo.messaging.queue
-        # pattern:
-        # Routing messages through a broker queue
-        waypoint: yes
-        distribution: balanced
-    }
-    address {
-        prefix: demo.messaging.topic
-        # Routing messages through a broker Topic
-        waypoint: yes
-        distribution: multicast
-    }
-    autoLink {
-        addr: demo.messaging.queue.q1
-        connection: local-amq-broker
-        dir: out
-    }
-    autoLink {
-        addr: demo.messaging.queue.q1
-        connection: local-amq-broker
-        dir: in
-    }
-    autoLink {
-        addr: demo.messaging.topic.t1
-        connection: local-amq-broker
-        dir: out
-    }
-    autoLink {
-        addr: demo.messaging.topic.t1
-        connection: local-amq-broker
-        dir: in
-    }
+    
     policy {
         enableVhostPolicy: true
         enableVhostNamePatterns: true

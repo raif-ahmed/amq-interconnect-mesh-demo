@@ -11,9 +11,23 @@
 :sectnums:
 
 == Deploy
+First step will be to generate the certificates, you will need to adjust the svc and route urls to match your environment
+
+[source,bash]
+----
+AMQ_BROKER_ROUTE_URL=zone-broker-amqps-0-svc-rte-broker-with-interconnect-mesh.apps.cluster-107d.gcp.testdrive.openshift.com
+AMQ_BROKER_SVC_URL=zone-broker-amqps-0-svc
+AMQ_INTERCONNECT_SVC_URL=*.broker-with-interconnect-mesh.svc.cluster.local
+----
+
+then generate the certificates.
+
+[source,bash]
+----
+./overlays/zone/generate-crts.sh
+----
 
 [source,bash]
 ----
 kustomize build overlays/zone |oc delete -f -
 ----
-
