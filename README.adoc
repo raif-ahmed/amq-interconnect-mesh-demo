@@ -1,0 +1,19 @@
+:source-highlighter: highlightjs
+:data-uri:
+:toc: left
+:markup-in-source: +verbatim,+quotes,+specialcharacters
+:icons: font
+:stylesdir: stylesheets
+:stylesheet: colony.css
+
+= Amq Interconnect Mesh Demo
+
+:sectnums:
+
+== Deploy
+
+[source,bash]
+----
+kustomize build overlays/zone |oc delete -f -
+----
+
