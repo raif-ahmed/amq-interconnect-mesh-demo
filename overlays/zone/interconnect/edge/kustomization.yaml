@@ -19,7 +19,7 @@ secretGenerator:
 - name: policies-edge
   files:
     - policies/default.json
-    - policies/edge.json
+    - policies/public.json
 
 # I'm changing the names to match the application name.
 # patches:

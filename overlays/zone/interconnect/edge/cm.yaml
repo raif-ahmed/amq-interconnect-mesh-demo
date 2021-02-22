@@ -21,6 +21,7 @@ data:
         port: amqp
         authenticatePeer: no
         saslMechanisms: ANONYMOUS
+        policyVhost: public
     }
     listener {
         host: 0.0.0.0
@@ -50,18 +51,32 @@ data:
 
     connector {
         name: interior-router
-        host: amq-interconnect-mesh
+        host: amq-interconnect-mesh.broker-with-interconnect-mesh.svc.cluster.local
         port: 55673
         # saslMechanisms: ANONYMOUS
         saslMechanisms: EXTERNAL
-        sslProfile: service_tls
+        sslProfile: inter_router_tls
         verifyHostname: false
-
         role: edge
 
     }
 
+    connector {
+        name: local-amq-broker
+        host: zone-broker-amqps-0-svc
+        # port: amqps
+        # saslMechanisms: EXTERNAL
+        # sslProfile: broker_tls
 
+        host: zone-broker-amqp-0-svc
+        port: 5672
+        saslMechanisms: PLAIN
+        saslUsername: admin
+        saslPassword: admin
+
+        role: route-container
+        verifyHostname: false
+    }
 
     sslProfile {
         name: inter_router_tls

@@ -23,7 +23,7 @@ spec:
     deploymentConfig: "amq-interconnect-mesh"
   template:
     metadata:
-      name: "amq-interconnect-mesh"
+      name: "amq-interconnect"
       labels:
         deploymentConfig: "amq-interconnect-mesh"
         application: amq-interconnect-mesh

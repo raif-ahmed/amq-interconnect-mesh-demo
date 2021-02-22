@@ -20,3 +20,4 @@ secretGenerator:
   files:
     - policies/default.json
     - policies/edge.json
+    - policies/public.json

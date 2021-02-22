@@ -8,7 +8,7 @@
         "groups": {
             "admin": {
                 "users": ["admin@amq-interconnect-mesh"],
-                "remoteHosts": ["*"],
+                "remoteHosts": "*",
                 "sources": "*",
                 "targets": "*",
                 "allowAnonymousSender": true,
@@ -21,7 +21,9 @@
                 "targets": ["myqueue1", "myqueue2"]
             },
             "$default": {
-                "remoteHosts": "*"
+                "remoteHosts":"*",
+                "sources":"*",
+                "targets":"*"
             }
         }
     }]
