@@ -1,5 +1,5 @@
-AMQ_BROKER_ROUTE_URL=zone-broker-amqps-0-svc-rte-broker-with-interconnect-mesh.apps.cluster-107d.gcp.testdrive.openshift.com
-AMQ_BROKER_SVC_URL=zone-broker-amqps-0-svc
+AMQ_BROKER_ROUTE_URL=dns:mesh-broker-amqps-0-svc-rte-broker-with-interconnect-mesh.apps.cluster-107d.gcp.testdrive.openshift.com,dns:edge-broker-amqps-0-svc-rte-broker-with-interconnect-mesh.apps.cluster-107d.gcp.testdrive.openshift.com
+AMQ_BROKER_SVC_URL=*.broker-with-interconnect-mesh.svc.cluster.local
 
 AMQ_INTERCONNECT_SVC_URL=*.broker-with-interconnect-mesh.svc.cluster.local
 AMQ_INTERCONNECT_ROUTE_URL=DNS:amq-interconnect-edge-console-broker-with-interconnect-mesh.apps.cluster-107d.gcp.testdrive.openshift.com,DNS:amq-interconnect-mesh-console-broker-with-interconnect-mesh.apps.cluster-107d.gcp.testdrive.openshift.com
@@ -39,7 +39,7 @@ openssl x509 -req -in crt/internal-certs/server-csr.pem -CA crt/internal-certs/c
 rm -rf crt/broker-certs
 mkdir crt/broker-certs
 
-keytool -genkey -noprompt -keyalg RSA -alias broker -dname "CN=${AMQ_BROKER_SVC_URL}, ou=Consulting, o=RH Demo, c=NL" -ext "SAN=dns:${AMQ_BROKER_ROUTE_URL}" -keystore crt/broker-certs/broker.ks -storepass $AMQ_BROKER_KEYSTORE_PASSWORD -keypass $AMQ_BROKER_KEYSTORE_PASSWORD -deststoretype pkcs12
+keytool -genkey -noprompt -keyalg RSA -alias broker -dname "CN=${AMQ_BROKER_SVC_URL}, ou=Consulting, o=RH Demo, c=NL" -ext "SAN=${AMQ_BROKER_ROUTE_URL}" -keystore crt/broker-certs/broker.ks -storepass $AMQ_BROKER_KEYSTORE_PASSWORD -keypass $AMQ_BROKER_KEYSTORE_PASSWORD -deststoretype pkcs12
 
 keytool -export -alias broker -keystore crt/broker-certs/broker.ks -storepass $AMQ_BROKER_KEYSTORE_PASSWORD -file crt/broker-certs/broker.der
 openssl x509 -inform DER -in crt/broker-certs/broker.der -out crt/broker-certs/tls.crt

@@ -72,7 +72,7 @@ data:
         # saslMechanisms: EXTERNAL
         # sslProfile: broker_tls
 
-        host: zone-broker-amqp-0-svc
+        host: mesh-broker-amqp-0-svc.broker-with-interconnect-mesh.svc.cluster.local
         port: 5672
         saslMechanisms: PLAIN
         saslUsername: admin

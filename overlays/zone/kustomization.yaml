@@ -36,7 +36,15 @@ secretGenerator:
 
 # https://access.redhat.com/documentation/en-us/red_hat_amq/2020.q4/html-single/deploying_amq_broker_on_openshift/index#assembly-br-securing-client-connections_broker-ocp
 # <CustomResourceName>-<AcceptorName>-secret
-- name: zone-broker-amqps-secret
+- name: mesh-broker-amqps-secret
+  files:
+    - broker.ks=crt/broker-certs/broker.ks
+    - client.ts=crt/broker-certs/broker.ks
+  literals:
+    - keyStorePassword=passw0rd
+    - trustStorePassword=passw0rd
+# <CustomResourceName>-<ConnectorName>-secret
+- name: mesh-broker-connector-secret
   files:
     - broker.ks=crt/broker-certs/broker.ks
     - client.ts=crt/broker-certs/broker.ks
@@ -44,11 +52,18 @@ secretGenerator:
     - keyStorePassword=passw0rd
     - trustStorePassword=passw0rd
 
-# <CustomResourceName>-<ConnectorName>-secret
-- name: zone-broker-connector-secret
-  files:
-    - broker.ks=crt/broker-certs/broker.ks
-    - client.ts=crt/broker-certs/broker.ks
-  literals:
-    - keyStorePassword=passw0rd
-    - trustStorePassword=passw0rd
+# - name: edge-broker-amqps-secret
+#   files:
+#     - broker.ks=crt/broker-certs/broker.ks
+#     - client.ts=crt/broker-certs/broker.ks
+#   literals:
+#     - keyStorePassword=passw0rd
+#     - trustStorePassword=passw0rd
+#
+# - name: edge-broker-connector-secret
+#   files:
+#     - broker.ks=crt/broker-certs/broker.ks
+#     - client.ts=crt/broker-certs/broker.ks
+#   literals:
+#     - keyStorePassword=passw0rd
+#     - trustStorePassword=passw0rd

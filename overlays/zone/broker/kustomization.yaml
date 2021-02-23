@@ -12,5 +12,6 @@ bases:
 - ../../../base/broker/deploy
 
 resources:
-  - broker.yaml
+  - mesh-broker.yaml
+  # - edge-broker.yaml
   #- address.yaml
