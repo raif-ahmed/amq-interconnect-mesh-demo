@@ -1,0 +1,15 @@
+[
+    ["vhost", {
+        "hostname": "edge",
+        "allowUnknownUser": true,
+        "groups": {
+            "$default": {
+              "remoteHosts":"*",
+              "sources":"*",
+              "targets":"*",
+              "allowDynamicSource":true,
+              "allowAnonymousSender":true
+            }
+        }
+    }]
+]

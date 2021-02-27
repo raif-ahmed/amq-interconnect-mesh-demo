@@ -1,0 +1,131 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: amq-interconnect-mesh
+data:
+  qdrouterd.conf: |-
+    router {
+        mode: interior
+        id: InteriorRouter.${HOSTNAME}
+        workerThreads:4
+        defaultDistribution: unavailable
+        allowResumableLinkRoute:false
+        timestampsInUTC:true
+        saslConfigDir: /etc/sasl2/
+    }
+    # only allow anonymous connections over localhost
+    listener {
+        host: localhost
+        port: amqp
+        authenticatePeer: no
+        saslMechanisms: ANONYMOUS
+        policyVhost: public
+    }
+    listener {
+        host: 0.0.0.0
+        port: amqp
+        authenticatePeer: yes
+    }
+    listener {
+        host: 0.0.0.0
+        port: amqps
+        sslProfile: service_tls
+        authenticatePeer: yes
+        requireSsl: true
+        saslMechanisms: EXTERNAL
+    }
+    listener {
+        host: 0.0.0.0
+        port: 55672
+        role: inter-router
+        sslProfile: inter_router_tls
+        authenticatePeer: yes
+        requireSsl: true
+        saslMechanisms: EXTERNAL
+    }
+    listener {
+        host: 0.0.0.0
+        port: 55673
+        # authenticatePeer: no
+        sslProfile: inter_router_tls
+        authenticatePeer: yes
+        requireSsl: true
+        saslMechanisms: EXTERNAL PLAIN
+        role: edge
+        policyVhost: edge
+    }
+    listener {
+        host: 0.0.0.0
+        port: 8080
+        authenticatePeer: yes
+        saslMechanisms: PLAIN SCRAM-SHA-1
+        # authenticatePeer: no
+        # saslMechanisms: ANONYMOUS
+        sslProfile: console_tls
+        http: true
+        httpRootDir: /usr/share/qpid-dispatch/console
+    }
+    connector {
+        name: local-amq-broker
+        host: zone-broker-amqps-0-svc
+        # port: amqps
+        # saslMechanisms: EXTERNAL
+        # sslProfile: broker_tls
+
+        host: mesh-broker-amqp-0-svc.broker-with-interconnect-mesh.svc.cluster.local
+        port: 5672
+        saslMechanisms: PLAIN
+        saslUsername: admin
+        saslPassword: admin
+
+        role: route-container
+        verifyHostname: false
+    }
+    sslProfile {
+        name: inter_router_tls
+        certFile: /etc/qpid-dispatch-certs/inter-router/tls.crt
+        privateKeyFile: /etc/qpid-dispatch-certs/inter-router/tls.key
+        caCertFile: /etc/qpid-dispatch-certs/inter-router/ca.crt
+    }
+    sslProfile {
+        name: service_tls
+        certFile: /etc/qpid-dispatch-certs/normal/tls.crt
+        privateKeyFile: /etc/qpid-dispatch-certs/normal/tls.key
+        caCertFile: /etc/qpid-dispatch-certs/normal/ca.crt
+    }
+    sslProfile {
+        name: console_tls
+        certFile: /etc/qpid-dispatch-certs/normal/tls.crt
+        privateKeyFile: /etc/qpid-dispatch-certs/normal/tls.key
+    }
+    address {
+        prefix: closest
+        distribution: closest
+    }
+    address {
+        prefix: multicast
+        distribution: multicast
+    }
+    address {
+        prefix: unicast
+        distribution: closest
+    }
+    address {
+        prefix: exclusive
+        distribution: closest
+    }
+    address {
+        prefix: broadcast
+        distribution: multicast
+    }
+    policy {
+        enableVhostPolicy: true
+        enableVhostNamePatterns: true
+        policyDir: /etc/qpid-dispatch-policies
+        defaultVhost: $default
+    }
+    log {
+        module: DEFAULT
+        enable: debug
+        includeTimestamp: true
+    }

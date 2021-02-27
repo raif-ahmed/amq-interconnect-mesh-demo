@@ -7,11 +7,8 @@ generatorOptions:
 commonLabels:
   application: amq-broker
 
-
-bases:
-- ../../../base/broker/deploy
-
 resources:
+  - ../../broker/operator/operatorhub
   - mesh-broker.yaml
   # - edge-broker.yaml
   #- address.yaml

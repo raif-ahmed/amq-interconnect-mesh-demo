@@ -1,0 +1,20 @@
+apiVersion: operators.coreos.com/v1alpha1
+kind: CatalogSource
+metadata:
+  name: redhat-operators
+  namespace: openshift-marketplace
+  labels:
+    olm-visibility: hidden
+    openshift-marketplace: 'true'
+    opsrc-datastore: 'true'
+    opsrc-owner-name: redhat-operators
+    opsrc-owner-namespace: openshift-marketplace
+    opsrc-provider: redhat
+spec:
+  address: 'redhat-operators.openshift-marketplace.svc:50051'
+  displayName: Red Hat Operators
+  icon:
+    base64data: ''
+    mediatype: ''
+  publisher: Red Hat
+  sourceType: grpc

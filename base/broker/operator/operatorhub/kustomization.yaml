@@ -7,5 +7,7 @@ generatorOptions:
 # Installing the Operator in OperatorHub
 # https://access.redhat.com/documentation/en-us/red_hat_amq/2020.q4/html/deploying_amq_broker_on_openshift/deploying-broker-on-ocp-using-operator_broker-ocp#proc_br-installing-broker-operator-in-operatorhub_broker-ocp
 resources:
-- catalog_resources/catalog-source.yaml
-- catalog_resources/activemq-artemis-operatorsource.yaml
+# - catalog_resources/catalog-source.yaml
+# - catalog_resources/activemq-artemis-operatorsource.yaml
+- amq-broker-operatorgroup.yaml
+- amq-broker-subscription.yaml

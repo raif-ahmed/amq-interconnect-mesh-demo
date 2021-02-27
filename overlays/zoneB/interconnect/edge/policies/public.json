@@ -1,0 +1,21 @@
+[
+    ["vhost", {
+      "hostname":"public",
+       "allowUnknownUser":true,
+       "maxConnections":1000,
+       "maxConnectionsPerUser":10,
+       "maxConnectionsPerHost":10,
+       "groups":{
+          "$default":{
+             "remoteHosts":"*",
+             "sources":"*",
+             "targets":"*",
+             "maxSessions":10,
+             "maxSenders":5,
+             "maxReceivers":5,
+             "allowDynamicSource":true,
+             "allowAnonymousSender":true
+          }
+       }
+    }]
+]
