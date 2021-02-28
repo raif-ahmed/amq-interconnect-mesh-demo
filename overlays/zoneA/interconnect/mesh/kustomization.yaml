@@ -21,3 +21,27 @@ secretGenerator:
     - policies/default.json
     - policies/edge.json
     - policies/public.json
+# copy from ZoneB crt/client-certs to be able to access amqps
+# - name: remote-zoneb-router-cert
+#   files:
+#     - tls.crt=crt/remote-zone-b-certs/tls.crt
+#     - tls.key=crt/remote-zone-b-certs/tls.key
+#     - ca.crt=crt/remote-zone-b-certs/tls.crt
+#   type: "kubernetes.io/tls"
+#
+# patches:
+# - target:
+#     kind: DeploymentConfig
+#     name: amq-interconnect-mesh
+#   patch: |-
+#     - op: add
+#       path: /spec/template/spec/containers/0/volumeMounts/-
+#       value:
+#         name: "remote-zoneb-router-cert"
+#         mountPath: "/etc/qpid-dispatch-certs/remote-zoneb-router-cert/"
+#     - op: add
+#       path: /spec/template/spec/volumes/-
+#       value:
+#         name: "remote-zoneb-router-cert"
+#         secret:
+#           secretName: remote-zoneb-router-cert

@@ -31,7 +31,8 @@ data:
     listener {
         host: 0.0.0.0
         port: amqps
-        sslProfile: service_tls
+        # sslProfile: service_tls
+        sslProfile: client_tls
         authenticatePeer: yes
         requireSsl: true
         saslMechanisms: EXTERNAL
@@ -85,6 +86,14 @@ data:
         # certFile: /etc/qpid-dispatch-certs/broker/tls.crt
         # privateKeyFile: /etc/qpid-dispatch-certs/broker/tls.key
         caCertFile: /etc/qpid-dispatch-certs/broker/ca.crt
+    }
+    sslProfile {
+        name: client_tls
+        certFile: /etc/qpid-dispatch-certs/client/tls.crt
+        privateKeyFile: /etc/qpid-dispatch-certs/client/tls.key
+        caCertFile: /etc/qpid-dispatch-certs/client/ca.crt
+        passwordFile: /etc/qpid-dispatch-certs/client/password.txt
+        #protocols: TLSv1 TLSv1.1 TLSv1.2
     }
     address {
         prefix: closest

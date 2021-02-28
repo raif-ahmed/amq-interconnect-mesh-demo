@@ -29,10 +29,11 @@ data:
     listener {
         host: 0.0.0.0
         port: amqps
-        sslProfile: service_tls
+        # sslProfile: service_tls
+        sslProfile: client_tls
         authenticatePeer: yes
         requireSsl: true
-        saslMechanisms: EXTERNAL
+        saslMechanisms: PLAIN
     }
     listener {
         host: 0.0.0.0
@@ -81,6 +82,22 @@ data:
         role: route-container
         verifyHostname: false
     }
+    connector {
+        name: remote-amq-mesh
+        host: amq-interconnect-mesh-amqps-broker-with-interconnect-mesh.apps.y3tpfd3p.westeurope.aroapp.io
+        port: 443
+        saslMechanisms: EXTERNAL PLAIN
+
+        sslProfile: client_tls
+        saslUsername: remote_connection@amq-interconnect-mesh
+        saslPassword: passw0rd
+
+        role: route-container
+        verifyHostname: false
+        idleTimeoutSeconds: 0
+        messageLoggingComponents: all
+    }
+
     sslProfile {
         name: inter_router_tls
         certFile: /etc/qpid-dispatch-certs/inter-router/tls.crt
@@ -91,12 +108,25 @@ data:
         name: service_tls
         certFile: /etc/qpid-dispatch-certs/normal/tls.crt
         privateKeyFile: /etc/qpid-dispatch-certs/normal/tls.key
-        caCertFile: /etc/qpid-dispatch-certs/normal/ca.crt
     }
     sslProfile {
         name: console_tls
         certFile: /etc/qpid-dispatch-certs/normal/tls.crt
         privateKeyFile: /etc/qpid-dispatch-certs/normal/tls.key
+    }
+    sslProfile {
+        name: broker_tls
+        # certFile: /etc/qpid-dispatch-certs/broker/tls.crt
+        # privateKeyFile: /etc/qpid-dispatch-certs/broker/tls.key
+        caCertFile: /etc/qpid-dispatch-certs/broker/ca.crt
+    }
+    sslProfile {
+        name: client_tls
+        certFile: /etc/qpid-dispatch-certs/client/tls.crt
+        privateKeyFile: /etc/qpid-dispatch-certs/client/tls.key
+        caCertFile: /etc/qpid-dispatch-certs/client/ca.crt
+        passwordFile: /etc/qpid-dispatch-certs/client/password.txt
+        #protocols: TLSv1 TLSv1.1 TLSv1.2
     }
     address {
         prefix: closest
@@ -118,6 +148,20 @@ data:
         prefix: broadcast
         distribution: multicast
     }
+    linkRoute {
+         name: remote.zoneb.remoteQueue.in
+         pattern: remote/*
+         delExternalPrefix: remote/
+         direction: in
+         connection: remote-amq-mesh
+      }
+    linkRoute {
+        name: remote.zoneb.remoteQueue.out
+        pattern: remote/*
+        delExternalPrefix: remote/
+        direction: out
+        connection: remote-amq-mesh
+     }
     policy {
         enableVhostPolicy: true
         enableVhostNamePatterns: true

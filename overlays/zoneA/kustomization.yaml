@@ -20,19 +20,22 @@ secretGenerator:
     - ca.crt=crt/internal-certs/ca.crt
   type: "kubernetes.io/tls"
 
-- name: amq-interconnect-cert
+# Copy tls.crt from remote server to ca.crt so we can trust remote servers
+- name: client-certs
   files:
     - tls.crt=crt/client-certs/tls.crt
     - tls.key=crt/client-certs/tls.key
-    - ca.crt=crt/client-certs/tls.crt
+    - ca.crt=crt/client-certs/ca.crt
+    - password.txt=crt/client-certs/password.txt
   type: "kubernetes.io/tls"
 
 - name: broker-router-cert
   files:
-    - tls.crt=crt/client-certs/tls.crt
-    - tls.key=crt/client-certs/tls.key
+    - tls.crt=crt/broker-certs/tls.crt
+    - tls.key=crt/broker-certs/tls.key
     - ca.crt=crt/broker-certs/tls.crt
   type: "kubernetes.io/tls"
+
 
 # https://access.redhat.com/documentation/en-us/red_hat_amq/2020.q4/html-single/deploying_amq_broker_on_openshift/index#assembly-br-securing-client-connections_broker-ocp
 # <CustomResourceName>-<AcceptorName>-secret

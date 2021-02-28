@@ -4,7 +4,7 @@ metadata:
   name: amq-interconnect-edge
   annotations:
     description: The router's AMQP port.
-    service.alpha.openshift.io/serving-cert-secret-name: amq-interconnect-edge-cert
+    service.alpha.openshift.io/serving-cert-secret-name: amq-interconnect-service-cert
 spec:
   ports:
   - port: 5672

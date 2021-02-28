@@ -3,6 +3,8 @@ AMQ_BROKER_SVC_URL=*.broker-with-interconnect-mesh.svc.cluster.local
 
 AMQ_INTERCONNECT_SVC_URL=*.broker-with-interconnect-mesh.svc.cluster.local
 AMQ_INTERCONNECT_ROUTE_URL=DNS:amq-interconnect-edge-console-broker-with-interconnect-mesh.apps.y3tpfd3p.westeurope.aroapp.io,DNS:amq-interconnect-mesh-console-broker-with-interconnect-mesh.apps.y3tpfd3p.westeurope.aroapp.io
+AMQ_INTERCONNECT_AMQPS_ROUTE_URL=amq-interconnect-mesh-console-broker-with-interconnect-mesh.apps.y3tpfd3p.westeurope.aroapp.io
+
 
 AMQ_BROKER_KEYSTORE_PASSWORD=passw0rd
 AMQ_CLIENT_KEYSTORE_PASSWORD=passw0rd
@@ -54,13 +56,14 @@ openssl pkcs12 -in crt/broker-certs/broker.ks  -nocerts -nodes -passin pass:$AMQ
 rm -rf crt/client-certs
 mkdir crt/client-certs
 
-keytool -genkey -noprompt -keyalg RSA -alias client -dname "CN=*, ou=Consulting, o=RH Demo, c=NL" -keystore crt/client-certs/client.ks -storepass $AMQ_CLIENT_KEYSTORE_PASSWORD -keypass $AMQ_CLIENT_KEYSTORE_PASSWORD -deststoretype pkcs12
+keytool -genkey -noprompt -keyalg RSA -alias client -dname "CN=${AMQ_INTERCONNECT_SVC_URL}, ou=Consulting, o=RH Demo, c=NL" -ext "SAN=${AMQ_INTERCONNECT_ROUTE_URL}" -keystore crt/client-certs/client.ks -storepass $AMQ_CLIENT_KEYSTORE_PASSWORD -keypass $AMQ_CLIENT_KEYSTORE_PASSWORD -deststoretype pkcs12
 
 
 keytool -export -alias client -keystore crt/client-certs/client.ks -storepass $AMQ_CLIENT_KEYSTORE_PASSWORD -file crt/client-certs/client.der
 openssl x509 -inform DER -in crt/client-certs/client.der -out crt/client-certs/tls.crt
 #openssl pkcs12 -in crt/client-certs/client.ks -nocerts -nodes  -out crt/client-certs/tls.key -passin pass:$AMQ_CLIENT_KEYSTORE_PASSWORD
 openssl pkcs12 -in crt/client-certs/client.ks  -nocerts -nodes -passin pass:$AMQ_BROKER_KEYSTORE_PASSWORD | openssl rsa -out crt/client-certs/tls.key
+echo $AMQ_BROKER_KEYSTORE_PASSWORD > crt/client-certs/password.txt
 
 
 # Lets trust each other

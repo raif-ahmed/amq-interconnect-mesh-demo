@@ -21,9 +21,7 @@
                 "targets": ["myqueue1", "myqueue2"]
             },
             "$default": {
-                "remoteHosts":"*",
-                "sources":"*",
-                "targets":"*"
+                "remoteHosts":"*"
             }
         }
     }]

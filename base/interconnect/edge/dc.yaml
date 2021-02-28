@@ -74,6 +74,9 @@ spec:
         - name: inter-router-certs
           readOnly: true
           mountPath: /etc/qpid-dispatch-certs/inter-router/
+        - name: client-certs
+          readOnly: true
+          mountPath: /etc/qpid-dispatch-certs/client/
         - name: config-volume
           mountPath: /etc/qpid-dispatch/
         - name: sasl-config
@@ -94,13 +97,16 @@ spec:
       volumes:
       - name: certs
         secret:
-          secretName: amq-interconnect-mesh-cert
+          secretName: amq-interconnect-service-cert
       - name: broker-cert
         secret:
           secretName: broker-router-cert
       - name: inter-router-certs
         secret:
           secretName: inter-router-certs
+      - name: client-certs
+        secret:
+          secretName: client-certs
       - name: config-volume
         configMap:
           name: amq-interconnect-edge

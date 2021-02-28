@@ -20,10 +20,16 @@
                 "sources": ["myqueue1", "myqueue2"],
                 "targets": ["myqueue1", "myqueue2"]
             },
+            "remote": {
+                "users": ["remote_connection@amq-interconnect-mesh"],
+                "remoteHosts": "*",
+                "sources": "*",
+                "targets": "*",
+                "allowAnonymousSender": true,
+                "allowDynamicSource": true
+            },
             "$default": {
-                "remoteHosts":"*",
-                "sources":"*",
-                "targets":"*"
+                "remoteHosts":"*"
             }
         }
     }]
