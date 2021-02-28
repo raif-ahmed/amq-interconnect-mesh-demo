@@ -35,7 +35,7 @@ data:
         sslProfile: client_tls
         authenticatePeer: yes
         requireSsl: true
-        saslMechanisms: EXTERNAL
+        saslMechanisms: PLAIN SCRAM-SHA-1
     }
     listener {
         host: 0.0.0.0
