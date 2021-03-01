@@ -31,9 +31,11 @@ data:
         port: amqps
         # sslProfile: service_tls
         sslProfile: client_tls
-        authenticatePeer: yes
         requireSsl: true
-        saslMechanisms: PLAIN
+        authenticatePeer: yes
+        saslMechanisms: EXTERNAL PLAIN
+        idleTimeoutSeconds: 0
+        messageLoggingComponents: all
     }
     listener {
         host: 0.0.0.0
@@ -67,13 +69,13 @@ data:
         httpRootDir: /usr/share/qpid-dispatch/console
     }
     connector {
-        name: local-amq-broker
-        host: zone-broker-amqps-0-svc
+        name: mesh-amq-broker
+
         # port: amqps
         # saslMechanisms: EXTERNAL
         # sslProfile: broker_tls
 
-        host: mesh-broker-amqp-0-svc.broker-with-interconnect-mesh.svc.cluster.local
+        host: mesh-broker-amqp-0-svc.broker-mesh.svc.cluster.local
         port: 5672
         saslMechanisms: PLAIN
         saslUsername: admin
@@ -114,12 +116,12 @@ data:
         certFile: /etc/qpid-dispatch-certs/normal/tls.crt
         privateKeyFile: /etc/qpid-dispatch-certs/normal/tls.key
     }
-    sslProfile {
-        name: broker_tls
-        # certFile: /etc/qpid-dispatch-certs/broker/tls.crt
-        # privateKeyFile: /etc/qpid-dispatch-certs/broker/tls.key
-        caCertFile: /etc/qpid-dispatch-certs/broker/ca.crt
-    }
+    # sslProfile {
+    #     name: broker_tls
+    #     # certFile: /etc/qpid-dispatch-certs/broker/tls.crt
+    #     # privateKeyFile: /etc/qpid-dispatch-certs/broker/tls.key
+    #     caCertFile: /etc/qpid-dispatch-certs/broker/ca.crt
+    # }
     sslProfile {
         name: client_tls
         certFile: /etc/qpid-dispatch-certs/client/tls.crt

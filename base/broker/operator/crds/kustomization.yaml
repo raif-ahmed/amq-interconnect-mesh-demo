@@ -1,0 +1,12 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+generatorOptions:
+  disableNameSuffixHash: true
+
+# https://access.redhat.com/documentation/en-us/red_hat_amq/2020.q4/html/deploying_amq_broker_on_openshift/deploying-broker-on-ocp-using-operator_broker-ocp
+# this will deploy the operator in your namespace
+resources:
+- broker_activemqartemis_crd.yaml
+- broker_activemqartemisaddress_crd.yaml
+- broker_activemqartemisscaledown_crd.yaml

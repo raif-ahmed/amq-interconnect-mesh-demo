@@ -1,0 +1,44 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+generatorOptions:
+ disableNameSuffixHash: true
+
+namespace: broker-edge
+
+commonLabels:
+  application: amq-broker
+
+resources:
+  - namespace.yaml
+  - ../../../broker/operator/operatorhub
+  - broker.yaml
+  #- address.yaml
+
+secretGenerator:
+# https://access.redhat.com/documentation/en-us/red_hat_amq/2020.q4/html-single/deploying_amq_broker_on_openshift/index#assembly-br-securing-client-connections_broker-ocp
+# <CustomResourceName>-<AcceptorName>-secret
+- name: edge-broker-amqps-secret
+  files:
+    - broker.ks=crt/broker-certs/broker.ks
+    - client.ts=crt/broker-certs/broker.ks
+  literals:
+    - keyStorePassword=passw0rd
+    - trustStorePassword=passw0rd
+
+- name: edge-broker-connector-secret
+  files:
+    - broker.ks=crt/broker-certs/broker.ks
+    - client.ts=crt/broker-certs/broker.ks
+  literals:
+    - keyStorePassword=passw0rd
+    - trustStorePassword=passw0rd
+
+patches:
+- target:
+    kind: OperatorGroup
+    name: amq-broker-og
+  patch: |-
+    - op: replace
+      path: /spec/targetNamespaces/0
+      value: broker-edge

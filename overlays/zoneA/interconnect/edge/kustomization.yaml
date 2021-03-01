@@ -4,6 +4,8 @@ kind: Kustomization
 generatorOptions:
  disableNameSuffixHash: true
 
+namespace: broker-with-interconnect-mesh
+
 
 bases:
 - ../../../../base/interconnect/edge

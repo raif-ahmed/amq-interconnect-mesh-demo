@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  annotations:
+    openshift.io/description: "Demo for scaling AMQ Broker with Interconnect Router Mesh"
+    openshift.io/display-name: "Mesh attached AMQ Broker"
+  name: broker-mesh

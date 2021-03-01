@@ -11,9 +11,6 @@ resources:
 - role.yaml
 - role_binding.yaml
 - operator.yaml
-- crds/broker_activemqartemis_crd.yaml
-- crds/broker_activemqartemisaddress_crd.yaml
-- crds/broker_activemqartemisscaledown_crd.yaml
 
 
   # https://access.redhat.com/RegistryAuthentication

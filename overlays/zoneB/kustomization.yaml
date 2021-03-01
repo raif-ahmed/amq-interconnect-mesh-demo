@@ -1,80 +1,9 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
-namespace: broker-with-interconnect-mesh
-
 generatorOptions:
  disableNameSuffixHash: true
 
 resources:
-  - namespace.yaml
-  - interconnect/mesh
-  - interconnect/edge
+  - interconnect
   - broker
-
-secretGenerator:
-- name: inter-router-certs
-  files:
-    - tls.crt=crt/internal-certs/tls.crt
-    - tls.key=crt/internal-certs/tls.key
-    - ca.crt=crt/internal-certs/ca.crt
-  type: "kubernetes.io/tls"
-
-# Copy tls.crt from remote server to ca.crt so we can trust remote servers
-- name: client-certs
-  files:
-    - tls.crt=crt/client-certs/tls.crt
-    - tls.key=crt/client-certs/tls.key
-    - ca.crt=crt/client-certs/ca.crt
-    - password.txt=crt/client-certs/password.txt
-  type: "kubernetes.io/tls"
-
-- name: broker-router-cert
-  files:
-    - tls.crt=crt/broker-certs/tls.crt
-    - tls.key=crt/broker-certs/tls.key
-    - ca.crt=crt/broker-certs/tls.crt
-  type: "kubernetes.io/tls"
-
-# https://access.redhat.com/documentation/en-us/red_hat_amq/2020.q4/html-single/deploying_amq_broker_on_openshift/index#assembly-br-securing-client-connections_broker-ocp
-# <CustomResourceName>-<AcceptorName>-secret
-- name: mesh-broker-amqps-secret
-  files:
-    - broker.ks=crt/broker-certs/broker.ks
-    - client.ts=crt/broker-certs/broker.ks
-  literals:
-    - keyStorePassword=passw0rd
-    - trustStorePassword=passw0rd
-# <CustomResourceName>-<ConnectorName>-secret
-- name: mesh-broker-connector-secret
-  files:
-    - broker.ks=crt/broker-certs/broker.ks
-    - client.ts=crt/broker-certs/broker.ks
-  literals:
-    - keyStorePassword=passw0rd
-    - trustStorePassword=passw0rd
-
-# - name: edge-broker-amqps-secret
-#   files:
-#     - broker.ks=crt/broker-certs/broker.ks
-#     - client.ts=crt/broker-certs/broker.ks
-#   literals:
-#     - keyStorePassword=passw0rd
-#     - trustStorePassword=passw0rd
-#
-# - name: edge-broker-connector-secret
-#   files:
-#     - broker.ks=crt/broker-certs/broker.ks
-#     - client.ts=crt/broker-certs/broker.ks
-#   literals:
-#     - keyStorePassword=passw0rd
-#     - trustStorePassword=passw0rd
-
-patches:
-- target:
-    kind: OperatorGroup
-    name: amq-broker-og
-  patch: |-
-    - op: replace
-      path: /spec/targetNamespaces/0
-      value: broker-with-interconnect-mesh

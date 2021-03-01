@@ -74,9 +74,9 @@ spec:
         - name: certs
           readOnly: true
           mountPath: /etc/qpid-dispatch-certs/normal/
-        - name: broker-cert
-          readOnly: true
-          mountPath: /etc/qpid-dispatch-certs/broker/
+        # - name: broker-cert
+        #   readOnly: true
+        #   mountPath: /etc/qpid-dispatch-certs/broker/
         - name: inter-router-certs
           readOnly: true
           mountPath: /etc/qpid-dispatch-certs/inter-router/
@@ -104,9 +104,9 @@ spec:
       - name: certs
         secret:
           secretName: amq-interconnect-service-cert
-      - name: broker-cert
-        secret:
-          secretName: broker-router-cert
+      # - name: broker-cert
+      #   secret:
+      #     secretName: broker-router-cert
       - name: inter-router-certs
         secret:
           secretName: inter-router-certs

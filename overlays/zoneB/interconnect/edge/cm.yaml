@@ -63,7 +63,22 @@ data:
         role: edge
 
     }
+    connector {
+        name: edge-amq-broker
 
+        # port: amqps
+        # saslMechanisms: EXTERNAL
+        # sslProfile: broker_tls
+
+        host: edge-broker-amqp-0-svc.broker-edge.svc.cluster.local
+        port: 5672
+        saslMechanisms: PLAIN
+        saslUsername: admin
+        saslPassword: admin
+
+        role: route-container
+        verifyHostname: false
+    }
     sslProfile {
         name: inter_router_tls
         certFile: /etc/qpid-dispatch-certs/inter-router/tls.crt
@@ -80,12 +95,12 @@ data:
         certFile: /etc/qpid-dispatch-certs/normal/tls.crt
         privateKeyFile: /etc/qpid-dispatch-certs/normal/tls.key
     }
-    sslProfile {
-        name: broker_tls
-        # certFile: /etc/qpid-dispatch-certs/broker/tls.crt
-        # privateKeyFile: /etc/qpid-dispatch-certs/broker/tls.key
-        caCertFile: /etc/qpid-dispatch-certs/broker/ca.crt
-    }
+    # sslProfile {
+    #     name: broker_tls
+    #     # certFile: /etc/qpid-dispatch-certs/broker/tls.crt
+    #     # privateKeyFile: /etc/qpid-dispatch-certs/broker/tls.key
+    #     caCertFile: /etc/qpid-dispatch-certs/broker/ca.crt
+    # }
     sslProfile {
         name: client_tls
         certFile: /etc/qpid-dispatch-certs/client/tls.crt

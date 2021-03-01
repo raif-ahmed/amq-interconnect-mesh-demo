@@ -1,0 +1,37 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace : broker-with-interconnect-mesh
+
+generatorOptions:
+ disableNameSuffixHash: true
+
+resources:
+  - namespace.yaml
+  - edge
+  - mesh
+
+secretGenerator:
+- name: inter-router-certs
+  files:
+    - tls.crt=crt/internal-certs/tls.crt
+    - tls.key=crt/internal-certs/tls.key
+    - ca.crt=crt/internal-certs/ca.crt
+  type: "kubernetes.io/tls"
+
+# Copy tls.crt from remote server to ca.crt so we can trust remote servers
+- name: client-certs
+  files:
+    - tls.crt=crt/client-certs/tls.crt
+    - tls.key=crt/client-certs/tls.key
+    - ca.crt=crt/client-certs/ca.crt
+    - password.txt=crt/client-certs/password.txt
+  type: "kubernetes.io/tls"
+
+# As of now I don't connect to broker on amqps, I simply use amqp and PLAIN SASL
+# - name: broker-router-cert
+#   files:
+#     - tls.crt=crt/broker-certs/tls.crt
+#     - tls.key=crt/broker-certs/tls.key
+#     - ca.crt=crt/broker-certs/tls.crt
+#   type: "kubernetes.io/tls"
