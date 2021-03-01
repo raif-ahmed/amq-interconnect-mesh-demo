@@ -130,7 +130,27 @@ data:
         prefix: broadcast
         distribution: multicast
     }
-
+    address {
+        prefix: mesh.messaging.queue
+        distribution: closest
+    }
+    address {
+        prefix: edge.zonea.messaging.queue
+        waypoint: yes
+        distribution: closest
+    }
+    # broker autolinks, both dir (in, out)
+    autoLink {
+      addr: edge.zonea.messaging.queue
+      connection: edge-amq-broker
+      dir: out
+      externalAddr: edge.zonea.messaging.queue::edge.zonea.messaging.queue
+    }
+    autoLink {
+      addr: edge.zonea.messaging.queue
+      connection: edge-amq-broker
+      dir: in
+    }
     policy {
         enableVhostPolicy: true
         enableVhostNamePatterns: true

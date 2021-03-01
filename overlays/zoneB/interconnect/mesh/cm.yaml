@@ -134,6 +134,28 @@ data:
         prefix: broadcast
         distribution: multicast
     }
+    address {
+        prefix: mesh.messaging.queue.q1
+        waypoint: yes
+    }
+    address {
+        prefix: mesh.messaging.queue.q2
+        waypoint: yes
+    }
+
+    # broker autolinks, both dir (in, out)
+    autoLink {
+      addr: mesh.messaging.queue.q1
+      connection: mesh-amq-broker
+      dir: out
+      externalAddr: mesh.messaging.queue.q1::mesh.messaging.queue.q1
+    }
+    autoLink {
+      addr: mesh.messaging.queue.q2
+      connection: mesh-amq-broker
+      dir: out
+      externalAddr: mesh.messaging.queue.q2::mesh.messaging.queue.q2
+    }
     policy {
         enableVhostPolicy: true
         enableVhostNamePatterns: true

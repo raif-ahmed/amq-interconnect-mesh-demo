@@ -13,7 +13,8 @@ resources:
   - namespace.yaml
   - ../../../broker/operator/operatorhub
   - broker.yaml
-  #- address.yaml
+  - mesh-q1-address.yaml
+  - mesh-q2-address.yaml
 
 secretGenerator:
 # https://access.redhat.com/documentation/en-us/red_hat_amq/2020.q4/html-single/deploying_amq_broker_on_openshift/index#assembly-br-securing-client-connections_broker-ocp

@@ -150,20 +150,42 @@ data:
         prefix: broadcast
         distribution: multicast
     }
-    linkRoute {
-         name: remote.zoneb.remoteQueue.in
-         pattern: remote/*
-         delExternalPrefix: remote/
-         direction: in
-         connection: remote-amq-mesh
-      }
-    linkRoute {
-        name: remote.zoneb.remoteQueue.out
-        pattern: remote/*
-        delExternalPrefix: remote/
-        direction: out
-        connection: remote-amq-mesh
-     }
+    address {
+        prefix: mesh.messaging.queue
+        waypoint: yes
+        # I want to distribute messages to both local mesh-broker & remote mesh
+        distribution: multicast
+    }
+    # broker autolinks, both dir (in, out)
+    autoLink {
+      addr: mesh.messaging.queue
+      connection: mesh-amq-broker
+      dir: out
+      externalAddr: mesh.messaging.queue::mesh.messaging.queue
+    }
+    autoLink {
+      addr: mesh.messaging.queue
+      connection: mesh-amq-broker
+      dir: in
+    }
+    # remote mesh autolinks, i will only push to the remote interconnect so no need for dir: in
+    autoLink {
+      addr: mesh.messaging.queue
+      connection: remote-amq-mesh
+      dir: out
+      externalAddr: mesh.messaging.queue.q1
+    }
+    autoLink {
+      addr: mesh.messaging.queue
+      connection: remote-amq-mesh
+      dir: out
+      externalAddr: mesh.messaging.queue.q2
+    }
+    # autoLink {
+    #   addr: remote-amq-mesh
+    #   connection: mesh-amq-broker
+    #   dir: in
+    # }
     policy {
         enableVhostPolicy: true
         enableVhostNamePatterns: true

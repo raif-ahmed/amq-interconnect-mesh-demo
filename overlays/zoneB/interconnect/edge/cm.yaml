@@ -129,7 +129,14 @@ data:
         prefix: broadcast
         distribution: multicast
     }
-
+    address {
+      prefix: mesh.messaging.queue.q1
+      waypoint: yes
+    }
+    address {
+      prefix: mesh.messaging.queue.q2
+      waypoint: yes
+    }
     policy {
         enableVhostPolicy: true
         enableVhostNamePatterns: true
