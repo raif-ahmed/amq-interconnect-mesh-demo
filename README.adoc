@@ -45,6 +45,8 @@ Of course, the message could be sent to different receivers all interested in th
 The main point here is that the routing decision is made for each received message and there is always a
 communication between internal router nodes and external clients.
 
+IMPORTANT: You can't use wildcard destination address with auto-links, auto-links address should be an explicit destination name.
+
 === What is waypoint ?
 
 Waypoint - feature is intended for address hosted on some external 'waypoint', usually a broker.
@@ -149,7 +151,6 @@ The delivery is considered to be "in-doubt" and should be re-sent if "at least o
 
 |===
 
-[[heading,Mapping Message Disposition to JMS Acknowledgment]]
 ==== Mapping Message Disposition to JMS Acknowledgmentfootnote:[https://access.redhat.com/documentation/en-us/red_hat_amq/7.7/html-single/using_the_amq_jms_client/index#connection_uri_options_jms]
 
 Ok so as explained <<Message Disposition (Acknowledgment)>> AMQP have two Disposition modes (Pre-settled, Unsettled), So when using the JMS Client this needs to be mapped to JMS modes (AUTO_ACKNOWLEDGE, CLIENT_ACKNOWLEDGE, DUPS_OK_ACKNOWLEDGE)
