@@ -1,4 +1,4 @@
-AMQ_BROKER_ROUTE_URL=dns:mesh-broker-amqps-0-svc-rte-broker-mesh.apps.cluster-107d.gcp.testdrive.openshift.com
+AMQ_BROKER_ROUTE_URL=dns:mesh-broker-amqps-0-svc-rte-broker-mesh.apps.cluster-f037.gcp.testdrive.openshift.com
 AMQ_BROKER_SVC_URL=*.broker-mesh.svc.cluster.local
 
 AMQ_BROKER_KEYSTORE_PASSWORD=passw0rd

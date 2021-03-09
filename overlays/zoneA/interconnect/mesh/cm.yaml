@@ -95,6 +95,7 @@ data:
         saslPassword: passw0rd
 
         role: route-container
+        # role: inter-router
         verifyHostname: false
         idleTimeoutSeconds: 0
         messageLoggingComponents: all
@@ -150,42 +151,47 @@ data:
         prefix: broadcast
         distribution: multicast
     }
+
     address {
-        prefix: mesh.messaging.queue
+        prefix: rh.usecase.1.queue
+        waypoint: yes
+        distribution: closest
+
+    }
+    autoLink {
+    	address: rh.usecase.1.queue
+    	connection: mesh-amq-broker
+    	dir: out
+    }
+    autoLink {
+    	address: rh.usecase.1.queue
+    	connection: mesh-amq-broker
+    	dir: in
+    }
+
+    address {
+        prefix: rh.usecase.2.queue
         waypoint: yes
         # I want to distribute messages to both local mesh-broker & remote mesh
         distribution: multicast
     }
     # broker autolinks, both dir (in, out)
     autoLink {
-      addr: mesh.messaging.queue
+      addr: rh.usecase.2.queue
       connection: mesh-amq-broker
       dir: out
-      externalAddr: mesh.messaging.queue::mesh.messaging.queue
     }
     autoLink {
-      addr: mesh.messaging.queue
+      addr: rh.usecase.2.queue
       connection: mesh-amq-broker
       dir: in
     }
     # remote mesh autolinks, i will only push to the remote interconnect so no need for dir: in
     autoLink {
-      addr: mesh.messaging.queue
+      addr: rh.usecase.2.queue
       connection: remote-amq-mesh
       dir: out
-      externalAddr: mesh.messaging.queue.q1
     }
-    autoLink {
-      addr: mesh.messaging.queue
-      connection: remote-amq-mesh
-      dir: out
-      externalAddr: mesh.messaging.queue.q2
-    }
-    # autoLink {
-    #   addr: remote-amq-mesh
-    #   connection: mesh-amq-broker
-    #   dir: in
-    # }
     policy {
         enableVhostPolicy: true
         enableVhostNamePatterns: true

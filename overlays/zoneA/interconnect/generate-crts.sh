@@ -1,6 +1,6 @@
 AMQ_INTERCONNECT_SVC_URL=*.broker-with-interconnect-mesh.svc.cluster.local
-AMQ_INTERCONNECT_ROUTE_URL=DNS:amq-interconnect-edge-console-broker-with-interconnect-mesh.apps.cluster-107d.gcp.testdrive.openshift.com,DNS:amq-interconnect-mesh-console-broker-with-interconnect-mesh.apps.cluster-107d.gcp.testdrive.openshift.com
-AMQ_INTERCONNECT_AMQPS_ROUTE_URL=amq-interconnect-mesh-console-broker-with-interconnect-mesh.apps.cluster-107d.gcp.testdrive.openshift.com
+AMQ_INTERCONNECT_ROUTE_URL=DNS:amq-interconnect-edge-console-broker-with-interconnect-mesh.apps.cluster-f037.gcp.testdrive.openshift.com,DNS:amq-interconnect-mesh-console-broker-with-interconnect-mesh.apps.cluster-f037.gcp.testdrive.openshift.com
+AMQ_INTERCONNECT_AMQPS_ROUTE_URL=amq-interconnect-mesh-console-broker-with-interconnect-mesh.apps.cluster-f037.gcp.testdrive.openshift.com
 
 AMQ_CLIENT_KEYSTORE_PASSWORD=passw0rd
 

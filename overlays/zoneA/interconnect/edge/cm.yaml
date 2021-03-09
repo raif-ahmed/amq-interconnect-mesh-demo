@@ -131,12 +131,16 @@ data:
         distribution: multicast
     }
     address {
-        prefix: mesh.messaging.queue
+        prefix: rh.usecase.1.queue
+        distribution: closest
+    }
+    address {
+        prefix: rh.usecase.2.queue
         distribution: closest
     }
     address {
         prefix: edge.zonea.messaging.queue
-        waypoint: yes
+        waypoint: true
         distribution: closest
     }
     # broker autolinks, both dir (in, out)
@@ -150,6 +154,8 @@ data:
       addr: edge.zonea.messaging.queue
       connection: edge-amq-broker
       dir: in
+      externalAddr: edge.zonea.messaging.queue::edge.zonea.messaging.queue
+
     }
     policy {
         enableVhostPolicy: true

@@ -1,9 +1,0 @@
-apiVersion: broker.amq.io/v2alpha2
-kind: ActiveMQArtemisAddress
-metadata:
-  name: mesh-address
-spec:
-  addressName: mesh.messaging.queue
-  queueName: mesh.messaging.queue
-  routingType: anycast
-  removeFromBrokerOnDelete: true

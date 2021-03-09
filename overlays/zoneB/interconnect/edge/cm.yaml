@@ -79,6 +79,22 @@ data:
         role: route-container
         verifyHostname: false
     }
+    connector {
+        name: wal-amq-broker
+
+        # port: amqps
+        # saslMechanisms: EXTERNAL
+        # sslProfile: broker_tls
+
+        host: 10.20.0.7
+        port: 5672
+        saslMechanisms: PLAIN
+        saslUsername: vt
+        saslPassword: vtww
+
+        role: route-container
+        verifyHostname: false
+    }
     sslProfile {
         name: inter_router_tls
         certFile: /etc/qpid-dispatch-certs/inter-router/tls.crt
@@ -130,12 +146,29 @@ data:
         distribution: multicast
     }
     address {
-      prefix: mesh.messaging.queue.q1
-      waypoint: yes
+      prefix: rh.usecase.2.q1
+      distribution: closest
     }
     address {
-      prefix: mesh.messaging.queue.q2
+      prefix: rh.usecase.2.q2
+      distribution: closest
+    }
+    address {
+      prefix: obis.onshore.vt.q1
       waypoint: yes
+    }
+    # broker autolinks, both dir (in, out)
+    autoLink {
+      addr: obis.onshore.vt.q1
+      connection: wal-amq-broker
+      dir: out
+      externalAddr: obis.onshore.vt.q1::obis.onshore.vt.q1
+    }
+    autoLink {
+      addr: obis.onshore.vt.q1
+      connection: wal-amq-broker
+      dir: in
+      externalAddr: obis.onshore.vt.q1::obis.onshore.vt.q1
     }
     policy {
         enableVhostPolicy: true

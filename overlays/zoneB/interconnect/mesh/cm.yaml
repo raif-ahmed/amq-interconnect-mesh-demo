@@ -134,28 +134,51 @@ data:
         prefix: broadcast
         distribution: multicast
     }
+
     address {
-        prefix: mesh.messaging.queue.q1
-        waypoint: yes
+        prefix: rh.usecase.2.queue
+        distribution: multicast
     }
-    address {
-        prefix: mesh.messaging.queue.q2
-        waypoint: yes
+    # broker autolinks, one dir (out)
+    autoLink {
+      address: rh.usecase.2.queue
+      connection: mesh-amq-broker
+      dir: out
+      phase: 0
+      externalAddr: rh.usecase.2.queue.q1::rh.usecase.2.queue.q1
+    }
+    autoLink {
+      address: rh.usecase.2.queue
+      connection: mesh-amq-broker
+      dir: out
+      phase: 0
+      externalAddr: rh.usecase.2.queue.q2::rh.usecase.2.queue.q2
     }
 
-    # broker autolinks, both dir (in, out)
-    autoLink {
-      addr: mesh.messaging.queue.q1
-      connection: mesh-amq-broker
-      dir: out
-      externalAddr: mesh.messaging.queue.q1::mesh.messaging.queue.q1
+    address {
+        prefix: rh.usecase.2.q1
+        waypoint: yes
+        distribution: closest
     }
     autoLink {
-      addr: mesh.messaging.queue.q2
+      address: rh.usecase.2.q1
       connection: mesh-amq-broker
-      dir: out
-      externalAddr: mesh.messaging.queue.q2::mesh.messaging.queue.q2
+      dir: in
+      externalAddr: rh.usecase.2.queue.q1::rh.usecase.2.queue.q1
     }
+
+    address {
+        prefix: rh.usecase.2.q2
+        waypoint: yes
+        distribution: closest
+    }
+    autoLink {
+      address: rh.usecase.2.q2
+      connection: mesh-amq-broker
+      dir: in
+      externalAddr: rh.usecase.2.queue.q2::rh.usecase.2.queue.q2
+    }
+
     policy {
         enableVhostPolicy: true
         enableVhostNamePatterns: true

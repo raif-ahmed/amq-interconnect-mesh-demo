@@ -32,3 +32,354 @@ cd overlays/zone/
 ----
 kustomize build overlays/zone |oc delete -f -
 ----
+
+== Message Routing
+
+When the router receives a message on a link, it uses the address specified by the sender attached the link itself to the route;
+if this address wasn’t specified, the destination address is get from the 'To' property of the message.
+Based on such information, the router inspects its routing table to determine the route for delivering the message.
+It could be a link attached by a direct receiver to the router or another router inside the network that will be the next hop for reaching the destination.
+Of course, the message could be sent to different receivers all interested in the same address.
+The main point here is that the routing decision is made for each received message and there is always a
+communication between internal router nodes and external clients.
+
+=== What is waypoint ?
+
+Waypoint - feature is intended for address hosted on some external 'waypoint', usually a broker.
+So every message goes to a broker first then comes out of the broker to resend to the receiver (so there’s going to be some latency added by that process).
+
+
+Setting waypoint as true will cause the proper <<What are phases in autolinks ?, address-phasing>> to be used for the producer and consumer.
+This will simplify the phase defaults in autolinks.
+
+=== What are phases in autolinks ?
+
+Phase 0 is for routing deliveries (messages) from producers to the tail of the queue (the out auto-link associated with the queue).
+Phase 1 is for routing deliveries (messages) from the head of the queue to subscribed consumers (the in auto-link associated with the queue).
+
+So In cases you want two (2) addresses pointing to the same queue, Where you want a distinct address for consuming and another for producing.
+You can define
+
+[source,yaml]
+----
+address {
+      prefix: rh.usecase.1.producer
+      distribution: closest
+    }
+address {
+        prefix: rh.usecase.1.consumer
+        distribution: closest
+    }
+
+autoLink {
+    address: rh.usecase.1.producer
+    connection: mesh-amq-broker
+    dir: out
+    phase: 1
+    externalAddr: rh.usecase.1.queue::rh.usecase.1.queue
+    }
+
+autoLink {
+    address: rh.usecase.1.consumer
+    connection: mesh-amq-broker
+    dir: in
+    phase: 0
+    externalAddr: rh.usecase.1.queue::rh.usecase.1.queue
+    }
+
+----
+
+[[heading,Message Disposition (Acknowledgment)]]
+=== Message Disposition (Acknowledgment)footnote:[https://access.redhat.com/documentation/en-us/red_hat_amq/7.7/html-single/using_amq_interconnect/index#understanding-message-routing-router-rhel]
+
+Another interesting point related to the message routing is Disposition (Acknowledgment).
+
+The level of reliability is negotiated between the client and the router when establishes a link to the router.
+To achieve the negotiated level of reliability, AMQ Interconnect treats all messages as either pre-settled or unsettled.
+
+* Pre-settled
+
+The router always propagates the delivery (message) and its settlement along the network.
+On receiving a “pre-settled” message, it propagates the settlement to the message’s destination. However, it does not guarantee delivery.
+
+Similar to https://activemq.apache.org/components/artemis/documentation/latest/pre-acknowledge.html[Artemis PRE_ACKNOWLEDGE], where messages will be acknowledge
+on the server *before* being delivered to the client.
+
+So, if you set Pre-settled for consumers then in AMQP land the router sends the messages to destination as settled,
+meaning that the client doesn't need to send back a response as the router has already forgotten about the message.
+That is why it is called "fire and forget".
+
+
+* Unsettled
+
+Also the router propagates the delivery (message) and its settlement along the network.
+for “unsettled” messages, the router needs to track the incoming delivery (message) and send the unsettled message to the destination;
+when it will receive the disposition (settlement) from the final receiver, it will reply in the same way to the original sender.
+This is a bit more complex in case of a multicast address, the router associates the incoming delivery with all outbound deliveries.
+The router waits for each consumer to set their delivery’s final state.
+After all outgoing deliveries have reached their final state, the router sets a final delivery state for the original inbound delivery and passes it to the producer.
+
+The following table describes the reliability guarantees for unsettled messages sent to an anycast or multicast address:
+
+
+[%header,cols="1,2,2"]
+|===
+|Final disposition
+|Anycast
+|Multicast
+
+|accepted
+|The consumer accepted the message.
+|At least one consumer accepted the message, but no consumers rejected it.
+
+
+|released
+|The message did not reach its destination.
+|The message did not reach any of the consumers.
+
+|modified
+|The message may or may not have reached its destination.
+The delivery is considered to be "in-doubt" and should be re-sent if "at least once" delivery is required.
+|The message may or may not have reached any of the consumers. However, no consumers rejected or accepted it.
+
+|rejected
+|The consumer rejected the message.
+|At least one consumer rejected the message.
+
+|===
+
+[[heading,Mapping Message Disposition to JMS Acknowledgment]]
+==== Mapping Message Disposition to JMS Acknowledgmentfootnote:[https://access.redhat.com/documentation/en-us/red_hat_amq/7.7/html-single/using_the_amq_jms_client/index#connection_uri_options_jms]
+
+Ok so as explained <<Message Disposition (Acknowledgment)>> AMQP have two Disposition modes (Pre-settled, Unsettled), So when using the JMS Client this needs to be mapped to JMS modes (AUTO_ACKNOWLEDGE, CLIENT_ACKNOWLEDGE, DUPS_OK_ACKNOWLEDGE)
+
+IMPORTANT: Those are global for the connection factory/connection.
+
+* Redelivery policy options
++
+Redelivery policy controls how redelivered messages are handled on the client.
++
+** *jms.redeliveryPolicy.maxRedeliveries*
+Controls when an incoming message is rejected based on the number of times it has been redelivered. A value of 0 indicates that no message redeliveries are accepted. A value of 5 allows a message to be redelivered five times, and so on. The default is -1, meaning no limit.
++
+** *jms.redeliveryPolicy.outcome*
+Controls the outcome applied to a message once it has exceeded the configured maxRedeliveries value. Supported values are: ACCEPTED, REJECTED, RELEASED, MODIFIED_FAILED and MODIFIED_FAILED_UNDELIVERABLE.
+The default value is MODIFIED_FAILED_UNDELIVERABLE.
++
+* Presettle policy options
++
+Presettle policy controls when a producer or consumer instance will be configured to use AMQP presettled messaging semantics.
++
+** *jms.presettlePolicy.presettleAll*
+If enabled, all producers and non-transacted consumers created operate in presettled mode. It is disabled by default.
+
+** *jms.presettlePolicy.presettleProducers*
+If enabled, all producers operate in presettled mode. It is disabled by default.
+
+** *jms.presettlePolicy.presettleTopicProducers*
+If enabled, any producer that is sending to a Topic or TemporaryTopic destination will operate in presettled mode. It is disabled by default.
+
+** *jms.presettlePolicy.presettleQueueProducers*
+If enabled, any producer that is sending to a Queue or TemporaryQueue destination will operate in presettled mode. It is disabled by default.
+
+** *jms.presettlePolicy.presettleTransactedProducers*
+If enabled, any producer that is created in a transacted Session will operate in presettled mode. It is disabled by default.
+
+** *jms.presettlePolicy.presettleConsumers*
+If enabled, all consumers operate in presettled mode. It is disabled by default.
+
+** *jms.presettlePolicy.presettleTopicConsumers*
+If enabled, any consumer that is receiving from a Topic or TemporaryTopic destination will operate in presettled mode. It is disabled by default.
+
+** *jms.presettlePolicy.presettleQueueConsumers*
+If enabled, any consumer that is receiving from a Queue or TemporaryQueue destination will operate in presettled mode. It is disabled by default.
+
+
+There are also another possibility to set it at a session level from JMS, so that such a connection can share both sessions with need pre-ack and sessions that need other modes.
+
+https://access.redhat.com/documentation/en-us/red_hat_amq/7.7/html/using_the_amq_jms_client/message_delivery#extended_session_acknowledgment_modes[Extended session acknowledgment modes]
+
+* Individual acknowledge
+* No acknowledge
+
+=== Usecase 1 : Produce to AnyCast queue in the broker using message routing
+Produce and Consume messages to/from address on the edge broker, this address should be created inside the broker attached to the interior mesh.
+The message routing auto-links should match an 'explicit' address inside the broker.
+
+
+ +----------+  add A  +--------+         +--------+
+ | Producer | +-----> |        |         |        |
+ +----------+         |  Edge  | +-----> |  Edge  |
+ +----------+  add A  | router |         | broker |
+ | Consumer | +-----> |        |         |        |
+ +----------+         +--------+         +--------+
+                           |
+                           |
+                           v
+                      +--------+         +--------+
+                      |  Mesh  | +-----> |  Mesh  |
+                      | router |         | broker |
+                      +--------+         +--------+
+
+So the follow will be from Edge Router -> Mesh -> Broker
+
+As you can see, a link is established between producer and edge router and between edge router and consumer.
+They are two completely distinct links (dir: out, dir: in) that the router uses for messages exchange between producer and consumer
+through the routing mechanism on message basis.
+
+It means that there is a different flow control between router (with its internal receiver - broker in our case) and Producer,
+and between router (with its internal sender - also broker in our case) and Consumer.
+
+[NOTE]
+====
+The default routing type to be used if not specified by the client is MULTICAST.
+To create anycast addresses we will need an addressSettings on the broker that matches the destination address name.
+Like the following
+
+.overlays/zoneA/broker/mesh/broker.yaml
+[source,yaml]
+----
+apiVersion: broker.amq.io/v2alpha4
+kind: ActiveMQArtemis
+metadata:
+  name: mesh-broker
+spec:
+  ...
+  addressSettings:
+    applyRule: replace_all
+    addressSetting:
+    - match: '#'
+      ...
+      autoCreateAddresses: true
+      autoDeleteAddresses: false
+
+      autoCreateJmsQueues: true
+      autoDeleteJmsQueues: false
+      autoCreateJmsTopics: true
+      autoDeleteJmsTopics: false
+      autoCreateQueues: true
+      autoDeleteQueues: true
+
+      # The default routing type to be used if not specified by the client is MULTICAST.
+      defaultAddressRoutingType: ANYCAST
+      defaultQueueRoutingType: ANYCAST
+
+----
+
+====
+
+lets see the qpid config
+
+.overlays/zoneA/interconnect/edge/cm.yaml
+[source,yaml]
+----
+...
+address {
+    prefix: rh.usecase.1.queue
+    distribution: closest
+}
+...
+----
+
+.overlays/zoneA/interconnect/mesh/cm.yaml
+[source,yaml]
+----
+...
+address {
+    prefix: rh.usecase.1.queue
+    waypoint: yes
+    distribution: closest
+
+}
+autoLink {
+  address: rh.usecase.1.queue
+  connection: mesh-amq-broker
+  dir: out
+}
+autoLink {
+  address: rh.usecase.1.queue
+  connection: mesh-amq-broker
+  dir: in
+}
+...
+----
+
+Now lets see the client code
+
+[source,java]
+----
+/* Test for Usecase message routing */
+String usecase1ProducerQueueName="rh.usecase.1.queue";
+String usecase1ConsumerQueueName="rh.usecase.1.queue";
+JMSProducer usecase1QueueProducer = new JMSProducer(connectionFactory1, usecase1ProducerQueueName,false);
+JMSQueueConsumer usecase1QueueConsumer1 = new JMSQueueConsumer(connectionFactory1,usecase1ConsumerQueueName,"Consumer-1");
+
+// The interconnect will create a queue "rh.group.1.queue::rh.group.1.queue" in the broker through autolinks
+// We will generate 10 connection on the edge, those will not reflect on the broker.
+// Only 2 connection (1 for producer & 1 for consumer) will be created on broker
+
+Executor usecase1QueueExecutor = Executors.newFixedThreadPool(20);
+
+// Generate 10 Producers on queue
+for (int i=0;i<10;i++)
+usecase1QueueExecutor.execute(usecase1QueueProducer);
+
+// Generate 10 Consumers on queue.
+for (int i=0;i<10;i++)
+	usecase1QueueExecutor.execute(usecase1QueueConsumer1);
+----
+
+=== Usecase 2 : Produce to AnyCast queue in the broker using message routing
+Produce and Consume messages to/from address on the edge broker, this address should be created inside the broker attached to the interior mesh.
+The message routing auto-links should match an 'explicit' address inside the broker.
+
+
+[ditaa]
+....
++----------+  add A  +--------+         +--------+          /-----------\
+| Producer | +-----> |  Edge  | +-----> |  Edge  |          |   Zone A  |
++----------+         | router |         | Broker |          \-----------/
+                     +--------+         +--------+
+                          |
+                          |
+                          v
+                      +--------+    q    +--------+
+                      |  Mesh  | +-----> |  Mesh  |
+                      | router |         | broker |
+                      +--------+         +--------+
+                          |
+                          |q
+                          |
+                          v
+                      +--------+   q1    +--------+       /-----------\
+                      |  Mesh  | +-----> |  Mesh  |       |   Zone B  |
+                      | router |   q2    | broker |       \-----------/
+                      |        | +-----> |        |
+                      +--------+         +--------+
+                           |
+                           |
+                           v
+                      +--------+   q1    +------------+
+                      |        | +-----> |  Consumer  |
+                      |  Edge  |         +------------+
+                      | router |   q2    +------------+
+                      |        | +-----> |  Consumer  |
+                      +--------+         +------------+
+....
+
+So the follow will be from Edge Router (Zone A) -> Mesh Router (Zone A) *multicast*-> Mesh Broker (Zone A) && Mesh Router (Zone B) -> Mesh Broker (q1, q2) -> Edge Router (q1, q2)
+
+
+== WIP
+Wild Cards
+
+You can't wildcard autolinks.
+
+and to create anycast addresses you will need an addresssettings on the broker that matches
+(otherwise the broker will go with defaults, which vary depending on whether producer or consumer connects first)
+
+
+
+Link Routing
+
+https://github.com/apache/qpid-dispatch/blob/0.6.0/doc/book/link_routing.rst

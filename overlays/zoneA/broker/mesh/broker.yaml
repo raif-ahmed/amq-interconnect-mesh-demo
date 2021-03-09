@@ -113,3 +113,7 @@ spec:
       autoDeleteJmsTopics: false
       autoCreateQueues: true
       autoDeleteQueues: true
+
+      # The default routing type to be used if not specified by the client is MULTICAST.
+      defaultAddressRoutingType: ANYCAST
+      defaultQueueRoutingType: ANYCAST
