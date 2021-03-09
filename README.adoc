@@ -10,6 +10,8 @@
 
 :sectnums:
 
+Sample Code: https://github.com/rahmed-rh/amq-interconnect-mesh-demo[]
+
 == Deploy
 First step will be to generate the certificates, you will need to adjust the svc and route urls to match your environment
 
@@ -329,10 +331,10 @@ for (int i=0;i<10;i++)
 	usecase1QueueExecutor.execute(usecase1QueueConsumer1);
 ----
 
-=== Usecase 2 : Produce to AnyCast queue in the broker using message routing
-Produce and Consume messages to/from address on the edge broker, this address should be created inside the broker attached to the interior mesh.
-The message routing auto-links should match an 'explicit' address inside the broker.
-
+=== Usecase 2 : Produce to AnyCast queue with multcast across zones
+Produce messages to address on the edge broker in zone A,
+then using message routing logic message message should be delivered to an address created inside the broker attached to the interior mesh,
+and propagated to zone B and fan put to q1,q2 address created inside the broker attached to the interior mesh in zone B.
 
 [ditaa]
 ....
