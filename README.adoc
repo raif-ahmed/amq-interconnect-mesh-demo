@@ -91,7 +91,7 @@ autoLink {
 
 ----
 
-[[heading,Message Disposition (Acknowledgment)]]
+[[heading,Message Disposition]]
 === Message Disposition (Acknowledgment)footnote:[https://access.redhat.com/documentation/en-us/red_hat_amq/7.7/html-single/using_amq_interconnect/index#understanding-message-routing-router-rhel]
 
 Another interesting point related to the message routing is Disposition (Acknowledgment).
