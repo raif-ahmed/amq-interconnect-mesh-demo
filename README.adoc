@@ -10,7 +10,7 @@
 
 :sectnums:
 
-Sample Code: https://github.com/rahmed-rh/amq-interconnect-mesh-demo[]
+Sample Code: https://github.com/rahmed-rh/jms-amqp-demo[]
 
 == Deploy
 First step will be to generate the certificates, you will need to adjust the svc and route urls to match your environment
