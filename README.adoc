@@ -373,15 +373,12 @@ So the follow will be from Edge Router (Zone A) -> Mesh Router (Zone A) *multica
 
 
 == WIP
-Wild Cards
 
-You can't wildcard autolinks.
-
-and to create anycast addresses you will need an addresssettings on the broker that matches
-(otherwise the broker will go with defaults, which vary depending on whether producer or consumer connects first)
 
 
 
 Link Routing
 
 https://github.com/apache/qpid-dispatch/blob/0.6.0/doc/book/link_routing.rst
+
+Link Routing Wild Cards
