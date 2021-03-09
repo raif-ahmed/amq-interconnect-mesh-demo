@@ -8,7 +8,7 @@
 
 = Amq Interconnect Mesh Demo
 
-:sectnums:
+:toc:
 
 Sample Code: https://github.com/rahmed-rh/jms-amqp-demo[]
 
@@ -91,7 +91,6 @@ autoLink {
 
 ----
 
-[[Mapping Message Disposition to JMS Acknowledgment,Mapping Message Disposition to JMS Acknowledgment]]
 === Message Disposition (Acknowledgment)footnote:[https://access.redhat.com/documentation/en-us/red_hat_amq/7.7/html-single/using_amq_interconnect/index#understanding-message-routing-router-rhel]
 
 Another interesting point related to the message routing is Disposition (Acknowledgment).
