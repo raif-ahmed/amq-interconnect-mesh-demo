@@ -157,25 +157,25 @@ data:
 
     address {
         prefix: rh.usecase.2.q1
-        waypoint: yes
         distribution: closest
     }
     autoLink {
       address: rh.usecase.2.q1
       connection: mesh-amq-broker
       dir: in
+      phase: 0
       externalAddr: rh.usecase.2.queue.q1::rh.usecase.2.queue.q1
     }
 
     address {
         prefix: rh.usecase.2.q2
-        waypoint: yes
         distribution: closest
     }
     autoLink {
       address: rh.usecase.2.q2
       connection: mesh-amq-broker
       dir: in
+      phase: 0
       externalAddr: rh.usecase.2.queue.q2::rh.usecase.2.queue.q2
     }
 

@@ -79,7 +79,7 @@ autoLink {
     address: rh.usecase.1.producer
     connection: mesh-amq-broker
     dir: out
-    phase: 1
+    phase: 0
     externalAddr: rh.usecase.1.queue::rh.usecase.1.queue
     }
 
@@ -87,7 +87,7 @@ autoLink {
     address: rh.usecase.1.consumer
     connection: mesh-amq-broker
     dir: in
-    phase: 0
+    phase: 1
     externalAddr: rh.usecase.1.queue::rh.usecase.1.queue
     }
 
