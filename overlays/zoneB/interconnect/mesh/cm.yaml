@@ -179,6 +179,19 @@ data:
       externalAddr: rh.usecase.2.queue.q2::rh.usecase.2.queue.q2
     }
 
+    linkRoute {
+      name: rh.usecase.3.in
+      pattern: rh/usecase/3/*
+      direction: in
+      connection: mesh-amq-broker
+    }
+    linkRoute {
+      name: rh.usecase.3.out
+      pattern: rh/usecase/3/*
+      direction: out
+      connection: mesh-amq-broker
+    }
+
     policy {
         enableVhostPolicy: true
         enableVhostNamePatterns: true

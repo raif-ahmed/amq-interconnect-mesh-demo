@@ -153,6 +153,12 @@ data:
       prefix: rh.usecase.2.q2
       distribution: closest
     }
+
+    address {
+        prefix: rh.usecase.3.*
+        distribution: closest
+    }
+    
     address {
       prefix: obis.onshore.vt.q1
       waypoint: yes

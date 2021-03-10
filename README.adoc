@@ -204,26 +204,26 @@ https://access.redhat.com/documentation/en-us/red_hat_amq/7.7/html/using_the_amq
 * Individual acknowledge
 * No acknowledge
 
-=== Usecase 1 : Produce to AnyCast queue in the broker using message routing
+=== Usecase 1 - Message Routing: Produce to AnyCast queue in the broker
 Produce and Consume messages to/from address on the edge broker, this address should be created inside the broker attached to the interior mesh.
 The message routing auto-links should match an 'explicit' address inside the broker.
 
 
- +----------+  add A  +--------+         +--------+
+ +----------+  add q  +--------+         +--------+
  | Producer | +-----> |        |         |        |
  +----------+         |  Edge  | +-----> |  Edge  |
- +----------+  add A  | router |         | broker |
+ +----------+  add q  | router |         | broker |
  | Consumer | +-----> |        |         |        |
  +----------+         +--------+         +--------+
                            |
                            |
                            v
-                      +--------+         +--------+
+                      +--------+  add q  +--------+
                       |  Mesh  | +-----> |  Mesh  |
                       | router |         | broker |
                       +--------+         +--------+
 
-So the follow will be from Edge Router -> Mesh -> Broker
+So the flow will be from Edge Router -> Mesh -> Broker
 
 As you can see, a link is established between producer and edge router and between edge router and consumer.
 They are two completely distinct links (dir: out, dir: in) that the router uses for messages exchange between producer and consumer
@@ -331,26 +331,26 @@ for (int i=0;i<10;i++)
 	usecase1QueueExecutor.execute(usecase1QueueConsumer1);
 ----
 
-=== Usecase 2 : Produce to AnyCast queue with multcast across zones
+=== Usecase 2 - Message Routing: Produce to AnyCast queue with multicast distribution across zones
 Produce messages to address on the edge broker in zone A,
 then using message routing logic message message should be delivered to an address created inside the broker attached to the interior mesh,
 and propagated to zone B and fan put to q1,q2 address created inside the broker attached to the interior mesh in zone B.
 
 [ditaa]
 ....
-+----------+  add A  +--------+         +--------+          /-----------\
++----------+  add q  +--------+         +--------+          /-----------\
 | Producer | +-----> |  Edge  | +-----> |  Edge  |          |   Zone A  |
 +----------+         | router |         | Broker |          \-----------/
                      +--------+         +--------+
                           |
                           |
                           v
-                      +--------+    q    +--------+
+                      +--------+  add q  +--------+
                       |  Mesh  | +-----> |  Mesh  |
                       | router |         | broker |
                       +--------+         +--------+
                           |
-                          |q
+                          |add q
                           |
                           v
                       +--------+   q1    +--------+       /-----------\
@@ -369,7 +369,7 @@ and propagated to zone B and fan put to q1,q2 address created inside the broker 
                       +--------+         +------------+
 ....
 
-So the follow will be from Edge Router (Zone A) -> Mesh Router (Zone A) *multicast*-> Mesh Broker (Zone A) && Mesh Router (Zone B) -> Mesh Broker (q1, q2) -> Edge Router (q1, q2)
+So the flow will be from Edge Router (Zone A) -> Mesh Router (Zone A) *multicast*-> Mesh Broker (Zone A) && Mesh Router (Zone B) -> Mesh Broker (q1, q2) -> Edge Router (q1, q2)
 
 lets see the qpid config
 
@@ -549,7 +549,136 @@ connector {
 
 ====
 
+=== Usecase 3 - Link Routing: Produce to AnyCast queue with wildcard address patterns across zones
+Produce messages to address on the edge broker in zone A, this address is dynamic (using wild card matching)
+then using link routing, message should propagated to zone B and address is created (the dynamic address name) inside the broker attached to the interior mesh in zone B.
 
+[ditaa]
+....
++----------+  add q  +--------+         +--------+          /-----------\
+| Producer | +-----> |  Edge  | +-----> |  Edge  |          |   Zone A  |
++----------+         | router |         | Broker |          \-----------/
+                     +--------+         +--------+
+                          |
+                          |
+                          v
+                      +--------+         +--------+
+                      |  Mesh  | +-----> |  Mesh  |
+                      | router |         | broker |
+                      +--------+         +--------+
+                          |
+                          |link
+                          |
+                          v
+                      +--------+  link   +--------+       /-----------\
+                      |  Mesh  | +-----> |  Mesh  |       |   Zone B  |
+                      | router |         | broker |       \-----------/
+                      +--------+         +--------+
+                           |
+                           |
+                           v
+                      +--------+  add q  +------------+
+                      |  Edge  | +-----> |  Consumer  |
+                      | router |         +------------+
+                      +--------+
+....
+
+So the flow will be from Edge Router (Zone A) -> Mesh Router (Zone A) -> Mesh Router (Zone B) -> Mesh Broker (Zone B) -> Edge Router (Zone B)
+
+lets see the qpid config
+
+.overlays/zoneA/interconnect/edge/cm.yaml
+[source,yaml]
+----
+...
+address {
+    prefix: rh.usecase.3.*
+    distribution: closest
+}
+...
+----
+
+.overlays/zoneA/interconnect/mesh/cm.yaml
+[source,yaml]
+----
+...
+linkRoute {
+  name: rh.usecase.3.in
+  pattern: rh/usecase/3/*
+  direction: in
+  connection: remote-amq-mesh
+}
+linkRoute {
+  name: rh.usecase.3.out
+  pattern: rh/usecase/3/*
+  direction: out
+  connection: remote-amq-mesh
+}
+...
+----
+
+.overlays/zoneB/interconnect/mesh/cm.yaml
+[source,yaml]
+----
+...
+linkRoute {
+  name: rh.usecase.3.in
+  pattern: rh/usecase/3/*
+  direction: in
+  connection: mesh-amq-broker
+}
+linkRoute {
+  name: rh.usecase.3.out
+  pattern: rh/usecase/3/*
+  direction: out
+  connection: mesh-amq-broker
+}
+...
+----
+
+.overlays/zoneB/interconnect/edge/cm.yaml
+[source,yaml]
+----
+...
+address {
+    prefix: rh.usecase.3.*
+    distribution: closest
+}
+...
+----
+
+Now lets see the client code
+[source,java]
+----
+JmsConnectionFactory connectionFactory1 = new JmsConnectionFactory();
+connectionFactory1.setRemoteURI(
+	String.format("%s?%s", zoneAUrl, "transport.verifyHost=false&transport.trustAll=true&amqp.saslMechanisms=SCRAM-SHA-1&amqp.idleTimeout=120000&amqp.traceFrames=true"));
+connectionFactory1.setUsername("admin@amq-interconnect-edge");
+connectionFactory1.setPassword("admin");
+
+JmsConnectionFactory connectionFactory2 = new JmsConnectionFactory();
+connectionFactory2.setRemoteURI(
+	String.format("%s?%s", zoneBUrl, "transport.verifyHost=false&transport.trustAll=true&amqp.saslMechanisms=SCRAM-SHA-1&amqp.idleTimeout=120000&amqp.traceFrames=true"));
+connectionFactory2.setUsername("admin@amq-interconnect-edge");
+connectionFactory2.setPassword("admin");
+
+
+String usecase3ProducerQueueName="rh.usecase.3.dummy";
+String usecase3ConsumerQueueName="rh.usecase.3.dummy";
+
+JMSProducer usecase3QueueProducer = new JMSProducer(connectionFactory1, usecase3ProducerQueueName,false);
+JMSQueueConsumer usecase3QueueConsumer1 = new JMSQueueConsumer(connectionFactory2,usecase3ConsumerQueueName,"Consumer-1");
+
+Executor usecase2QueueExecutor = Executors.newFixedThreadPool(consumerCount+producerCount);
+
+// Generate Producers on any dummy queue, it should be aut-created
+for (int i=0;i<producerCount;i++)
+	usecase2QueueExecutor.execute(usecase3QueueProducer);
+
+// Generate Consumers on the prviously defined dummy queue
+for (int i=0;i<consumerCount;i++)
+	usecase2QueueExecutor.execute(usecase3QueueConsumer1);
+----
 
 == WIP
 
@@ -557,7 +686,5 @@ connector {
 
 
 Link Routing
-
+Add some explanation around Link Routing
 https://github.com/apache/qpid-dispatch/blob/0.6.0/doc/book/link_routing.rst
-
-Link Routing Wild Cards

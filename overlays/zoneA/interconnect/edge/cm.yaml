@@ -139,6 +139,10 @@ data:
         distribution: closest
     }
     address {
+        prefix: rh.usecase.3.*
+        distribution: closest
+    }
+    address {
         prefix: edge.zonea.messaging.queue
         waypoint: true
         distribution: closest

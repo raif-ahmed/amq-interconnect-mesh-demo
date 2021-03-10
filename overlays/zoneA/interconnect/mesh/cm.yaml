@@ -192,6 +192,19 @@ data:
       connection: remote-amq-mesh
       dir: out
     }
+
+    linkRoute {
+      name: rh.usecase.3.in
+      pattern: rh/usecase/3/*
+      direction: in
+      connection: remote-amq-mesh
+    }
+    linkRoute {
+      name: rh.usecase.3.out
+      pattern: rh/usecase/3/*
+      direction: out
+      connection: remote-amq-mesh
+    }
     policy {
         enableVhostPolicy: true
         enableVhostNamePatterns: true
