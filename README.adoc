@@ -24,29 +24,6 @@
 .*Sample Code:*
 ** https://github.com/rahmed-rh/jms-amqp-demo[]
 
-== Deploy
-First step will be to generate the certificates, you will need to adjust the svc and route urls to match your environment
-
-[source,bash]
-----
-AMQ_BROKER_ROUTE_URL=zone-broker-amqps-0-svc-rte-broker-with-interconnect-mesh.apps.cluster-107d.gcp.testdrive.openshift.com
-AMQ_BROKER_SVC_URL=zone-broker-amqps-0-svc
-AMQ_INTERCONNECT_SVC_URL=*.broker-with-interconnect-mesh.svc.cluster.local
-----
-
-then generate the certificates.
-
-[source,bash]
-----
-cd overlays/zone/
-./generate-crts.sh
-----
-
-[source,bash]
-----
-kustomize build overlays/zone |oc delete -f -
-----
-
 [[link-message-routing]]
 == Message Routing
 With the message-routing strategy, each router makes a routing decision on a per-message basis when the message is delivered.
@@ -709,4 +686,31 @@ for (int i=0;i<producerCount;i++)
 // Generate Consumers on the prviously defined dummy queue
 for (int i=0;i<consumerCount;i++)
 	usecase2QueueExecutor.execute(usecase3QueueConsumer1);
+----
+
+
+== Deploy Infrastructure 
+
+*TODO:* Update to reflect new structure ..
+
+First step will be to generate the certificates, you will need to adjust the svc and route urls to match your environment
+
+[source,bash]
+----
+AMQ_BROKER_ROUTE_URL=zone-broker-amqps-0-svc-rte-broker-with-interconnect-mesh.apps.cluster-107d.gcp.testdrive.openshift.com
+AMQ_BROKER_SVC_URL=zone-broker-amqps-0-svc
+AMQ_INTERCONNECT_SVC_URL=*.broker-with-interconnect-mesh.svc.cluster.local
+----
+
+then generate the certificates.
+
+[source,bash]
+----
+cd overlays/zone/
+./generate-crts.sh
+----
+
+[source,bash]
+----
+kustomize build overlays/zone |oc delete -f -
 ----
