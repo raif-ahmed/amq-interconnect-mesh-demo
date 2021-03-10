@@ -554,7 +554,7 @@ From a flow control point of view, it’s directly handled between sender and re
 The link through the router is like a “tunnel” and it seems that the two peers are directly connected.
 The same is true for disposition about settlement for “unsettled” messages that the sender receives directly from the receiver.
 
-The concept of different routing patterns doesn’t make sense because in this case there is a direct link between sender and receiver
+The concept of different distribution (closest, balanced, multicast) patterns doesn’t make sense because in this case there is a direct link between sender and receiver
 so the router doesn’t make any decision on single message basis but it has only to propagate the frame along the link.
 
 === Usecase 3 - Link Routing: Produce to AnyCast queue with wildcard address patterns across zones
@@ -689,7 +689,7 @@ for (int i=0;i<consumerCount;i++)
 ----
 
 
-== Deploy Infrastructure 
+== Deploy Infrastructure
 
 *TODO:* Update to reflect new structure ..
 
