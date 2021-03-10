@@ -479,6 +479,45 @@ address {
 ...
 ----
 
+Now lets see the client code
+
+[source,java]
+----
+JmsConnectionFactory connectionFactory1 = new JmsConnectionFactory();
+connectionFactory1.setRemoteURI(
+	String.format("%s?%s", zoneAUrl, "transport.verifyHost=false&transport.trustAll=true&amqp.saslMechanisms=SCRAM-SHA-1&amqp.idleTimeout=120000&amqp.traceFrames=true"));
+connectionFactory1.setUsername("admin@amq-interconnect-edge");
+connectionFactory1.setPassword("admin");
+
+JmsConnectionFactory connectionFactory2 = new JmsConnectionFactory();
+connectionFactory2.setRemoteURI(
+	String.format("%s?%s", zoneBUrl, "transport.verifyHost=false&transport.trustAll=true&amqp.saslMechanisms=SCRAM-SHA-1&amqp.idleTimeout=120000&amqp.traceFrames=true"));
+connectionFactory2.setUsername("admin@amq-interconnect-edge");
+connectionFactory2.setPassword("admin");
+
+
+String usecase2ProducerQueueName="rh.usecase.2.queue";
+String usecase2Consumer1QueueName="rh.usecase.2.q1";
+String usecase2Consumer2QueueName="rh.usecase.2.q2";
+
+JMSProducer usecase2QueueProducer = new JMSProducer(connectionFactory1, usecase2ProducerQueueName,false);
+JMSQueueConsumer usecase2QueueConsumer1 = new JMSQueueConsumer(connectionFactory2,usecase2Consumer1QueueName,"Consumer-1");
+JMSQueueConsumer usecase2QueueConsumer2 = new JMSQueueConsumer(connectionFactory2,usecase2Consumer2QueueName,"Consumer-2");
+
+Executor usecase2QueueExecutor = Executors.newFixedThreadPool((consumerCount*2)+producerCount);
+
+// Generate 10 Producers on queue
+for (int i=0;i<producerCount;i++)
+	usecase2QueueExecutor.execute(usecase2QueueProducer);
+
+// Generate 2 Consumers on each queue(q1,q2).
+for (int i=0;i<consumerCount;i++)
+	usecase2QueueExecutor.execute(usecase2QueueConsumer1);
+
+for (int i=0;i<consumerCount;i++)
+	usecase2QueueExecutor.execute(usecase2QueueConsumer2);
+----
+
 [NOTE]
 ====
 One Important note, is how we link ZoneA router mesh with ZoneB router mesh.
