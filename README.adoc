@@ -92,7 +92,7 @@ Another interesting point related to the message routing is Disposition (Acknowl
 The level of reliability is negotiated between the client and the router when establishes a link to the router.
 To achieve the negotiated level of reliability, AMQ Interconnect treats all messages as either pre-settled or unsettled.
 
-* Pre-settled
+==== Pre-settled
 
 The router always propagates the delivery (message) and its settlement along the network.
 On receiving a “pre-settled” message, it propagates the settlement to the message’s destination. However, it does not guarantee delivery.
@@ -104,8 +104,7 @@ So, if you set Pre-settled for consumers then in AMQP land the router sends the 
 meaning that the client doesn't need to send back a response as the router has already forgotten about the message.
 That is why it is called "fire and forget".
 
-
-* Unsettled
+==== Unsettled
 
 Also the router propagates the delivery (message) and its settlement along the network.
 for “unsettled” messages, the router needs to track the incoming delivery (message) and send the unsettled message to the destination;
@@ -115,7 +114,6 @@ The router waits for each consumer to set their delivery’s final state.
 After all outgoing deliveries have reached their final state, the router sets a final delivery state for the original inbound delivery and passes it to the producer.
 
 The following table describes the reliability guarantees for unsettled messages sent to an anycast or multicast address:
-
 
 [%header,cols="1,2,2"]
 |===
