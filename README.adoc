@@ -56,6 +56,7 @@ So every message goes to a broker first then comes out of the broker to resend t
 Setting waypoint as true will cause the proper <<What are phases in autolinks ?, address-phasing>> to be used for the producer and consumer.
 This will simplify the phase defaults in autolinks.
 
+[[heading,What are phases in autolinks ?]]
 === What are phases in autolinks ?
 
 Phase 0 is for routing deliveries (messages) from producers to the tail of the queue (the out auto-link associated with the queue).
@@ -369,7 +370,7 @@ and propagated to zone B and fan put to q1,q2 address created inside the broker 
                       +--------+         +------------+
 ....
 
-So the flow will be from Edge Router (Zone A) -> Mesh Router (Zone A) *multicast*-> Mesh Broker (Zone A) && Mesh Router (Zone B) *multicast*-> Mesh Broker (q1 & q2) -> Edge Router (q1, q2)
+So the flow will be from Edge Router (Zone A) -> Mesh Router (Zone A) *multicast*-> Mesh Broker (Zone A) && Mesh Router (Zone B) *multicast*-> Mesh Broker (q1 && q2) -> Edge Router (q1, q2)
 
 lets see the qpid config
 
