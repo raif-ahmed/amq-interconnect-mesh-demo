@@ -9,8 +9,20 @@
 = Amq Interconnect Mesh Demo
 
 :toc:
+:toc-title: Blog Contents
+:toclevels: 5
 
-Sample Code: https://github.com/rahmed-rh/jms-amqp-demo[]
+.*References:*
+** https://github.com/apache/qpid-dispatch/blob/0.6.0/doc/book/link_routing.rst[]
+** https://dzone.com/articles/routing-mechanisms-for-amqp-protocol[]
+** https://access.redhat.com/documentation/en-us/red_hat_amq/7.7/html-single/using_the_amq_jms_client/index[]
+** https://access.redhat.com/documentation/en-us/red_hat_amq/2021.q1/html/using_amq_interconnect/index[]
+** https://qpid.apache.org/releases/qpid-dispatch-1.15.0/user-guide/index.html[]
+** https://qpid.apache.org/releases/qpid-dispatch-1.15.0/man/qdrouterd.conf.html[]
+
+
+.*Sample Code:*
+** https://github.com/rahmed-rh/jms-amqp-demo[]
 
 == Deploy
 First step will be to generate the certificates, you will need to adjust the svc and route urls to match your environment
@@ -35,7 +47,9 @@ cd overlays/zone/
 kustomize build overlays/zone |oc delete -f -
 ----
 
+[[link-message-routing]]
 == Message Routing
+With the message-routing strategy, each router makes a routing decision on a per-message basis when the message is delivered.
 
 When the router receives a message on a link, it uses the address specified by the sender attached the link itself to the route;
 if this address wasn’t specified, the destination address is get from the 'To' property of the message.
@@ -53,10 +67,10 @@ Waypoint - feature is intended for address hosted on some external 'waypoint', u
 So every message goes to a broker first then comes out of the broker to resend to the receiver (so there’s going to be some latency added by that process).
 
 
-Setting waypoint as true will cause the proper <<What are phases in autolinks ?, address-phasing>> to be used for the producer and consumer.
+Setting waypoint as true will cause the proper <<link-what-phases, address-phasing>> to be used for the producer and consumer.
 This will simplify the phase defaults in autolinks.
 
-[[heading,What are phases in autolinks ?]]
+[[link-what-phases]]
 === What are phases in autolinks ?
 
 Phase 0 is for routing deliveries (messages) from producers to the tail of the queue (the out auto-link associated with the queue).
@@ -551,7 +565,20 @@ connector {
 ====
 
 == Link Routing
-TODO: Add explanation
+Link-routing is different than <<link-message-routing,message-routing strategy>> because it makes routing decisions when link-attach frames arrive.
+A link is effectively chained across the network of routers from the establishing node to the destination node to establish the real link.
+Once the link is established, the transfer of message deliveries, flow frames, and dispositions is performed across the routed link.
+
+
+When the sender starts to send messages to the router, it propagates that message
+through the established link to the destination without making any decision at the message level. You can think of it as a sort of virtual connection or a tunnel between sender and receiver through a router's network.
+
+From a flow control point of view, it’s directly handled between sender and receiver;
+The link through the router is like a “tunnel” and it seems that the two peers are directly connected.
+The same is true for disposition about settlement for “unsettled” messages that the sender receives directly from the receiver.
+
+The concept of different routing patterns doesn’t make sense because in this case there is a direct link between sender and receiver
+so the router doesn’t make any decision on single message basis but it has only to propagate the frame along the link.
 
 === Usecase 3 - Link Routing: Produce to AnyCast queue with wildcard address patterns across zones
 Produce messages to address on the edge broker in zone A, this address is dynamic (using wild card matching)
@@ -683,12 +710,3 @@ for (int i=0;i<producerCount;i++)
 for (int i=0;i<consumerCount;i++)
 	usecase2QueueExecutor.execute(usecase3QueueConsumer1);
 ----
-
-== WIP
-
-
-
-
-Link Routing
-Add some explanation around Link Routing
-https://github.com/apache/qpid-dispatch/blob/0.6.0/doc/book/link_routing.rst
