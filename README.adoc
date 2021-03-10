@@ -369,7 +369,7 @@ and propagated to zone B and fan put to q1,q2 address created inside the broker 
                       +--------+         +------------+
 ....
 
-So the flow will be from Edge Router (Zone A) -> Mesh Router (Zone A) *multicast*-> Mesh Broker (Zone A) && Mesh Router (Zone B) -> Mesh Broker (q1, q2) -> Edge Router (q1, q2)
+So the flow will be from Edge Router (Zone A) -> Mesh Router (Zone A) *multicast*-> Mesh Broker (Zone A) && Mesh Router (Zone B) *multicast*-> Mesh Broker (q1 & q2) -> Edge Router (q1, q2)
 
 lets see the qpid config
 
@@ -548,6 +548,9 @@ connector {
 <2> role must be route-container, connecting with role 'inter-router' will cause any auto-link using connection 'remote-amq-mesh' to be inactive.
 
 ====
+
+== Link Routing
+TODO: Add explanation
 
 === Usecase 3 - Link Routing: Produce to AnyCast queue with wildcard address patterns across zones
 Produce messages to address on the edge broker in zone A, this address is dynamic (using wild card matching)
