@@ -371,6 +371,146 @@ and propagated to zone B and fan put to q1,q2 address created inside the broker 
 
 So the follow will be from Edge Router (Zone A) -> Mesh Router (Zone A) *multicast*-> Mesh Broker (Zone A) && Mesh Router (Zone B) -> Mesh Broker (q1, q2) -> Edge Router (q1, q2)
 
+lets see the qpid config
+
+.overlays/zoneA/interconnect/edge/cm.yaml
+[source,yaml]
+----
+...
+address {
+    prefix: rh.usecase.2.queue
+    distribution: closest
+}
+...
+----
+
+.overlays/zoneA/interconnect/mesh/cm.yaml
+[source,yaml]
+----
+...
+address {
+    prefix: rh.usecase.2.queue
+    waypoint: yes
+    # I want to distribute messages to both local mesh-broker & remote mesh
+    distribution: multicast
+}
+# broker autolinks, both dir (in, out)
+autoLink {
+  addr: rh.usecase.2.queue
+  connection: mesh-amq-broker
+  dir: out
+}
+autoLink {
+  addr: rh.usecase.2.queue
+  connection: mesh-amq-broker
+  dir: in
+}
+# remote mesh autolinks, i will only push to the remote interconnect so no need for dir: in
+autoLink {
+  addr: rh.usecase.2.queue
+  connection: remote-amq-mesh
+  dir: out
+}
+...
+----
+
+.overlays/zoneB/interconnect/mesh/cm.yaml
+[source,yaml]
+----
+...
+address {
+    prefix: rh.usecase.2.queue
+    distribution: multicast
+}
+# broker autolinks, one dir (out)
+autoLink {
+  address: rh.usecase.2.queue
+  connection: mesh-amq-broker
+  dir: out
+  phase: 0
+  externalAddr: rh.usecase.2.queue.q1::rh.usecase.2.queue.q1
+}
+autoLink {
+  address: rh.usecase.2.queue
+  connection: mesh-amq-broker
+  dir: out
+  phase: 0
+  externalAddr: rh.usecase.2.queue.q2::rh.usecase.2.queue.q2
+}
+# address & autolinks for consumers
+address {
+    prefix: rh.usecase.2.q1
+    distribution: closest
+}
+autoLink {
+  address: rh.usecase.2.q1
+  connection: mesh-amq-broker
+  dir: in
+  phase: 0
+  externalAddr: rh.usecase.2.queue.q1::rh.usecase.2.queue.q1
+}
+
+address {
+    prefix: rh.usecase.2.q2
+    distribution: closest
+}
+autoLink {
+  address: rh.usecase.2.q2
+  connection: mesh-amq-broker
+  dir: in
+  phase: 0
+  externalAddr: rh.usecase.2.queue.q2::rh.usecase.2.queue.q2
+}
+...
+----
+
+.overlays/zoneB/interconnect/edge/cm.yaml
+[source,yaml]
+----
+...
+address {
+  prefix: rh.usecase.2.q1
+  distribution: closest
+}
+address {
+  prefix: rh.usecase.2.q2
+  distribution: closest
+}
+...
+----
+
+[NOTE]
+====
+One Important note, is how we link ZoneA router mesh with ZoneB router mesh.
+To create this link, we need to create a connector from ZoneA router mesh to the 'amqps port' exposed through route in ZoneB router mesh.
+lets check the connection 'remote-amq-mesh', which points to ZoneB router mesh
+
+.overlays/zoneA/interconnect/mesh/cm.yaml
+[source,yaml]
+----
+connector {
+    name: remote-amq-mesh
+    host: amq-interconnect-mesh-amqps-broker-with-interconnect-mesh.apps.y3tpfd3p.westeurope.aroapp.io
+    port: 443 <1>
+    saslMechanisms: EXTERNAL PLAIN
+
+    sslProfile: client_tls
+    saslUsername: remote_connection@amq-interconnect-mesh
+    saslPassword: passw0rd
+
+    role: route-container <2>
+    # role: inter-router
+    verifyHostname: false
+    idleTimeoutSeconds: 0
+    messageLoggingComponents: all
+}
+----
+<1> Using amqps (TLS using SNI), for more information about OpenShift 4 Ingress check https://docs.openshift.com/container-platform/4.6/networking/configuring_ingress_cluster_traffic/overview-traffic.html[Configuring ingress cluster traffic overview]
+<2> role must be route-container, connecting with role 'inter-router' will cause any auto-link using connection 'remote-amq-mesh' to be inactive.
+
+====
+
+
 
 == WIP
 
