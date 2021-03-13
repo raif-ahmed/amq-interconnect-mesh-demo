@@ -1,12 +1,12 @@
 kind: Route
 apiVersion: route.openshift.io/v1
 metadata:
-  name: amq-edge-amqps
+  name: amq-mesh-inter-router
 spec:
   port:
-    targetPort: amqps
+    targetPort: 55677
   tls:
     termination: passthrough
   to:
     kind: Service
-    name: amq-interconnect-edge
+    name: amq-interconnect-mesh

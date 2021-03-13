@@ -285,12 +285,12 @@ address {
 }
 autoLink {
   address: rh.usecase.1.queue
-  connection: mesh-amq-broker
+  connection: zone-a-mesh-amq-broker
   dir: out
 }
 autoLink {
   address: rh.usecase.1.queue
-  connection: mesh-amq-broker
+  connection: zone-a-mesh-amq-broker
   dir: in
 }
 ...
@@ -387,18 +387,18 @@ address {
 # broker autolinks, both dir (in, out)
 autoLink {
   addr: rh.usecase.2.queue
-  connection: mesh-amq-broker
+  connection: zone-a-mesh-amq-broker
   dir: out
 }
 autoLink {
   addr: rh.usecase.2.queue
-  connection: mesh-amq-broker
+  connection: zone-a-mesh-amq-broker
   dir: in
 }
 # remote mesh autolinks, i will only push to the remote interconnect so no need for dir: in
 autoLink {
   addr: rh.usecase.2.queue
-  connection: remote-amq-mesh
+  connection: remote-amq-mesh-amqps-route
   dir: out
 }
 ...
@@ -415,26 +415,26 @@ address {
 # broker autolinks, one dir (out)
 autoLink {
   address: rh.usecase.2.queue
-  connection: mesh-amq-broker
+  connection: zone-b-mesh-amq-broker
   dir: out
   phase: 0
   externalAddr: rh.usecase.2.queue.q1::rh.usecase.2.queue.q1
 }
 autoLink {
   address: rh.usecase.2.queue
-  connection: mesh-amq-broker
+  connection: zone-b-mesh-amq-broker
   dir: out
   phase: 0
   externalAddr: rh.usecase.2.queue.q2::rh.usecase.2.queue.q2
 }
-# address & autolinks for consumers
+
 address {
     prefix: rh.usecase.2.q1
     distribution: closest
 }
 autoLink {
   address: rh.usecase.2.q1
-  connection: mesh-amq-broker
+  connection: zone-b-mesh-amq-broker
   dir: in
   phase: 0
   externalAddr: rh.usecase.2.queue.q1::rh.usecase.2.queue.q1
@@ -446,7 +446,7 @@ address {
 }
 autoLink {
   address: rh.usecase.2.q2
-  connection: mesh-amq-broker
+  connection: zone-b-mesh-amq-broker
   dir: in
   phase: 0
   externalAddr: rh.usecase.2.queue.q2::rh.usecase.2.queue.q2
@@ -689,26 +689,169 @@ for (int i=0;i<consumerCount;i++)
 
 == Deploy Infrastructure
 
-*TODO:* Update to reflect new structure ..
+In the next section, I'm going to explain how to deploy the demo Infrastructure which is using two (2) public clouds.
 
-First step will be to generate the certificates, you will need to adjust the svc and route urls to match your environment
+First Step is to generate the Certificates, which will need to secure the communication between different components for this we will do the following
+
+=== Generate Common CA Certs
+
+We start by generating a common CA Cert which we will use to sign all internal routers certificates, in different clusters/zones.
 
 [source,bash]
 ----
-AMQ_BROKER_ROUTE_URL=zone-broker-amqps-0-svc-rte-broker-with-interconnect-mesh.apps.cluster-107d.gcp.testdrive.openshift.com
-AMQ_BROKER_SVC_URL=zone-broker-amqps-0-svc
+$ cd amq-interconnect-mesh-demo/overlays
+$ ./generate-crts.sh
+
+$ ll crt/ca-certs/
+total 16
+-rw-rw-r--. 1 rahmed rahmed 1192 Mar 12 10:19 ca.crt
+-rw-rw-r--. 1 rahmed rahmed  993 Mar 12 10:19 ca-csr.pem
+-rw-------. 1 rahmed rahmed 1675 Mar 12 10:19 ca-key.pem
+-rw-------. 1 rahmed rahmed 1675 Mar 12 10:19 tls.key
+----
+
+=== Generate Interconnect Certificates for each Zone
+Now, for each Zone/Cluster we will generate certificates for Interconnect.
+
+We need two (2) kind of certificates;
+
+* The Internal Router certificate, which the router will use to take to its peer routers (interior,edge) to form a routers mesh
+* The Client/Service Certificate (AMQPs), which will be exposed to clients (internal within OpenShift, or external outside OpenShift) trying to connect to server.
+
+The bash script generate both certificates in one go.
+
+[[link-internal-router-cert]]
+==== The Internal Router certificate
+
+We will start by generating the Internal router certificates.
+
+Start by ZoneA
+
+[source,bash]
+----
+$ cd overlays/zoneA/interconnect
+$ ./generate-crts.sh
+
+$ ll crt/
+client-certs/   internal-certs/
+
+$ ll internal-certs/
+total 24
+-rw-rw-r--. 1 rahmed rahmed 1192 Mar 12 10:39 ca.crt
+-rw-------. 1 rahmed rahmed 1675 Mar 12 10:39 ca-key.pem
+-rw-rw-r--. 1 rahmed rahmed   41 Mar 12 10:39 ca.srl
+-rw-rw-r--. 1 rahmed rahmed 1281 Mar 12 10:39 server-csr.pem
+-rw-rw-r--. 1 rahmed rahmed 1147 Mar 12 10:39 tls.crt
+-rw-------. 1 rahmed rahmed 1675 Mar 12 10:39 tls.key
+
+----
+
+then, the same for ZoneB
+
+[source,bash]
+----
+$ cd overlays/zoneB/interconnect
+$ ./generate-crts.sh
+
+$ ll crt/
+client-certs/   internal-certs/
+
+$ ll crt/internal-certs/
+total 24
+-rw-rw-r--. 1 rahmed rahmed 1192 Mar 12 10:43 ca.crt
+-rw-------. 1 rahmed rahmed 1675 Mar 12 10:43 ca-key.pem
+-rw-rw-r--. 1 rahmed rahmed   41 Mar 12 10:43 ca.srl
+-rw-rw-r--. 1 rahmed rahmed 1253 Mar 12 10:43 server-csr.pem
+-rw-rw-r--. 1 rahmed rahmed 1147 Mar 12 10:43 tls.crt
+-rw-------. 1 rahmed rahmed 1675 Mar 12 10:43 tls.key
+
+----
+
+==== The Client/Service Certificate (AMQPs)
+
+As mentioned the Client/Service Certificate is for serving Client connecting on AMQPs so it should contain
+
+* Service Url for clients connecting from inside the OpenShift Cluster
+* Route Url for clients connecting from outside the OpenShift Cluster
+
+We will generate the Certificate where the CN is the Service Url, and the additional SANs are the Routes Urls
+To customize the Urls (you will need to adjust the svc and route urls to match your environment),
+
+
+[source,bash]
+----
 AMQ_INTERCONNECT_SVC_URL=*.broker-with-interconnect-mesh.svc.cluster.local
+AMQ_INTERCONNECT_ROUTE_URL=DNS:amq-interconnect-edge-console-broker-with-interconnect-mesh.apps.cluster-f037.gcp.testdrive.openshift.com,DNS:amq-interconnect-mesh-console-broker-with-interconnect-mesh.apps.cluster-f037.gcp.testdrive.openshift.com
 ----
 
-then generate the certificates.
-
-[source,bash]
-----
-cd overlays/zone/
-./generate-crts.sh
-----
+Also As mentioned before, the bash script generate both certificates (Internal Router, Client/Service) in one go.
+So from the previous step <<link-internal-router-cert,internal router certificate>> the Client/Service Certificate should also be generated
 
 [source,bash]
 ----
-kustomize build overlays/zone |oc delete -f -
+$ cd overlays/zoneA/interconnect
+
+$ ll crt/
+client-certs/   internal-certs/
+
+$ ll crt/client-certs/
+total 20
+-rw-rw-r--. 1 rahmed rahmed 1131 Mar 12 10:31 client.der
+-rw-rw-r--. 1 rahmed rahmed 2823 Mar 12 10:31 client.ks
+-rw-rw-r--. 1 rahmed rahmed    9 Mar 12 10:31 password.txt
+-rw-rw-r--. 1 rahmed rahmed 1586 Mar 12 10:31 tls.crt
+-rw-------. 1 rahmed rahmed 1679 Mar 12 10:31 tls.key
+----
+
+then, also check ZoneB
+
+[source,bash]
+----
+$ cd overlays/zoneB/interconnect
+
+$ ll crt/
+client-certs/   internal-certs/
+
+$ ll crt/client-certs/
+total 20
+-rw-rw-r--. 1 rahmed rahmed 1107 Mar 12 10:43 client.der
+-rw-rw-r--. 1 rahmed rahmed 2799 Mar 12 10:43 client.ks
+-rw-rw-r--. 1 rahmed rahmed    9 Mar 12 10:43 password.txt
+-rw-rw-r--. 1 rahmed rahmed 1554 Mar 12 10:43 tls.crt
+-rw-------. 1 rahmed rahmed 1675 Mar 12 10:43 tls.key
+----
+
+The we need to Copy tls.crt from ZoneA as ca.crt in ZoneB and vice versa,
+so they can trust each other incase we need to talk on Client/Service exposed ocp route.
+
+[source,bash]
+----
+$ cp overlays/zoneB/interconnect/crt/client-certs/tls.crt overlays/zoneA/interconnect/crt/client-certs/ca.crt
+$ cp overlays/zoneA/interconnect/crt/client-certs/tls.crt overlays/zoneB/interconnect/crt/client-certs/ca.crt
+
+$ ll overlays/zoneA/interconnect/crt/client-certs/
+total 24
+-rw-rw-r--. 1 rahmed rahmed 1700 Mar 13 20:37 ca.crt
+-rw-rw-r--. 1 rahmed rahmed 1246 Mar 12 13:10 client.der
+-rw-rw-r--. 1 rahmed rahmed 2943 Mar 12 13:10 client.ks
+-rw-rw-r--. 1 rahmed rahmed    9 Mar 12 13:10 password.txt
+-rw-rw-r--. 1 rahmed rahmed 1744 Mar 12 13:10 tls.crt
+-rw-------. 1 rahmed rahmed 1675 Mar 12 13:10 tls.key
+
+$ ll overlays/zoneB/interconnect/crt/client-certs/
+total 24
+-rw-rw-r--. 1 rahmed rahmed 1744 Mar 13 20:37 ca.crt
+-rw-rw-r--. 1 rahmed rahmed 1213 Mar 12 13:11 client.der
+-rw-rw-r--. 1 rahmed rahmed 2911 Mar 12 13:11 client.ks
+-rw-rw-r--. 1 rahmed rahmed    9 Mar 12 13:11 password.txt
+-rw-rw-r--. 1 rahmed rahmed 1700 Mar 12 13:11 tls.crt
+-rw-------. 1 rahmed rahmed 1675 Mar 12 13:11 tls.key
+
+----
+
+[source,bash]
+----
+kustomize build overlays/zoneA | oc apply -f -
+kustomize build overlays/zoneB | oc apply -f -
+
 ----

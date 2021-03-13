@@ -49,6 +49,9 @@ spec:
         - name: edge
           containerPort: 55673
           protocol: TCP
+        - name: inter-ext
+          containerPort: 55677
+          protocol: TCP
         env:
         - name: APPLICATION_NAME
           value: "amq-interconnect-mesh"

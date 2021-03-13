@@ -59,6 +59,16 @@ data:
     }
     listener {
         host: 0.0.0.0
+        port: 55677
+        sslProfile: inter_router_tls
+        authenticatePeer: yes
+        requireSsl: true
+        saslMechanisms: EXTERNAL PLAIN
+        role: inter-router
+        policyVhost: inter-router
+    }
+    listener {
+        host: 0.0.0.0
         port: 8080
         authenticatePeer: yes
         saslMechanisms: PLAIN SCRAM-SHA-1
@@ -69,13 +79,13 @@ data:
         httpRootDir: /usr/share/qpid-dispatch/console
     }
     connector {
-        name: mesh-amq-broker
+        name: zone-b-mesh-amq-broker
 
         # port: amqps
         # saslMechanisms: EXTERNAL
         # sslProfile: broker_tls
 
-        host: mesh-broker-amqp-0-svc.broker-mesh.svc.cluster.local
+        host: mesh-broker-amqp-0-svc.broker-mesh-zone-b.svc.cluster.local
         port: 5672
         saslMechanisms: PLAIN
         saslUsername: admin
@@ -142,14 +152,14 @@ data:
     # broker autolinks, one dir (out)
     autoLink {
       address: rh.usecase.2.queue
-      connection: mesh-amq-broker
+      connection: zone-b-mesh-amq-broker
       dir: out
       phase: 0
       externalAddr: rh.usecase.2.queue.q1::rh.usecase.2.queue.q1
     }
     autoLink {
       address: rh.usecase.2.queue
-      connection: mesh-amq-broker
+      connection: zone-b-mesh-amq-broker
       dir: out
       phase: 0
       externalAddr: rh.usecase.2.queue.q2::rh.usecase.2.queue.q2
@@ -161,7 +171,7 @@ data:
     }
     autoLink {
       address: rh.usecase.2.q1
-      connection: mesh-amq-broker
+      connection: zone-b-mesh-amq-broker
       dir: in
       phase: 0
       externalAddr: rh.usecase.2.queue.q1::rh.usecase.2.queue.q1
@@ -173,7 +183,7 @@ data:
     }
     autoLink {
       address: rh.usecase.2.q2
-      connection: mesh-amq-broker
+      connection: zone-b-mesh-amq-broker
       dir: in
       phase: 0
       externalAddr: rh.usecase.2.queue.q2::rh.usecase.2.queue.q2
@@ -183,13 +193,13 @@ data:
       name: rh.usecase.3.in
       pattern: rh/usecase/3/*
       direction: in
-      connection: mesh-amq-broker
+      connection: zone-b-mesh-amq-broker
     }
     linkRoute {
       name: rh.usecase.3.out
       pattern: rh/usecase/3/*
       direction: out
-      connection: mesh-amq-broker
+      connection: zone-b-mesh-amq-broker
     }
 
     policy {

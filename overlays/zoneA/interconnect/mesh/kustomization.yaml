@@ -21,6 +21,7 @@ secretGenerator:
   files:
     - policies/default.json
     - policies/edge.json
+    - policies/inter-router.json
     - policies/public.json
 # copy from ZoneB crt/client-certs to be able to access amqps
 # - name: remote-zoneb-router-cert

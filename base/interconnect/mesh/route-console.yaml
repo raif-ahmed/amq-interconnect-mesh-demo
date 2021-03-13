@@ -1,7 +1,7 @@
 kind: Route
 apiVersion: route.openshift.io/v1
 metadata:
-  name: amq-interconnect-mesh-console
+  name: amq-mesh-console
 spec:
   port:
     targetPort: http

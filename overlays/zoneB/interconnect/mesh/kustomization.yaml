@@ -20,4 +20,5 @@ secretGenerator:
   files:
     - policies/default.json
     - policies/edge.json
+    - policies/inter-router.json
     - policies/public.json

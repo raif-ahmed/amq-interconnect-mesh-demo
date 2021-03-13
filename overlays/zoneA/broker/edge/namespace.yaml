@@ -4,4 +4,4 @@ metadata:
   annotations:
     openshift.io/description: "Demo for scaling AMQ Broker with Interconnect Router Mesh"
     openshift.io/display-name: "Edge attached AMQ Broker"
-  name: broker-edge
+  name: broker-edge-zone-a

@@ -22,5 +22,8 @@ spec:
   - port: 55673
     name: edge
     targetPort: 55673
+  - port: 55677
+    name: inter-router-external
+    targetPort: 55677
   selector:
     deploymentConfig: amq-interconnect-mesh

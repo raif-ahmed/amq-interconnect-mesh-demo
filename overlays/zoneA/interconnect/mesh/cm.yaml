@@ -59,6 +59,16 @@ data:
     }
     listener {
         host: 0.0.0.0
+        port: 55677
+        sslProfile: inter_router_tls
+        authenticatePeer: yes
+        requireSsl: true
+        saslMechanisms: EXTERNAL PLAIN
+        role: inter-router
+        policyVhost: inter-router
+    }
+    listener {
+        host: 0.0.0.0
         port: 8080
         authenticatePeer: yes
         saslMechanisms: PLAIN SCRAM-SHA-1
@@ -69,13 +79,13 @@ data:
         httpRootDir: /usr/share/qpid-dispatch/console
     }
     connector {
-        name: mesh-amq-broker
+        name: zone-a-mesh-amq-broker
 
         # port: amqps
         # saslMechanisms: EXTERNAL
         # sslProfile: broker_tls
 
-        host: mesh-broker-amqp-0-svc.broker-mesh.svc.cluster.local
+        host: mesh-broker-amqp-0-svc.broker-mesh-zone-a.svc.cluster.local
         port: 5672
         saslMechanisms: PLAIN
         saslUsername: admin
@@ -85,8 +95,8 @@ data:
         verifyHostname: false
     }
     connector {
-        name: remote-amq-mesh
-        host: amq-interconnect-mesh-amqps-broker-with-interconnect-mesh.apps.y3tpfd3p.westeurope.aroapp.io
+        name: remote-amq-mesh-amqps-route
+        host: amq-mesh-amqps-broker-with-interconnect-mesh.apps.y3tpfd3p.westeurope.aroapp.io
         port: 443
         saslMechanisms: EXTERNAL PLAIN
 
@@ -95,7 +105,22 @@ data:
         saslPassword: passw0rd
 
         role: route-container
-        # role: inter-router
+        verifyHostname: false
+        idleTimeoutSeconds: 0
+        messageLoggingComponents: all
+    }
+
+    connector {
+        name: remote-amq-mesh-inter-router-route
+        host: amq-mesh-inter-router-broker-with-interconnect-mesh.apps.y3tpfd3p.westeurope.aroapp.io
+        port: 443
+        saslMechanisms: EXTERNAL PLAIN
+
+        sslProfile: inter_router_tls
+        saslUsername: remote_connection@amq-interconnect-mesh
+        saslPassword: passw0rd
+
+        role: inter-router
         verifyHostname: false
         idleTimeoutSeconds: 0
         messageLoggingComponents: all
@@ -160,12 +185,12 @@ data:
     }
     autoLink {
     	address: rh.usecase.1.queue
-    	connection: mesh-amq-broker
+    	connection: zone-a-mesh-amq-broker
     	dir: out
     }
     autoLink {
     	address: rh.usecase.1.queue
-    	connection: mesh-amq-broker
+    	connection: zone-a-mesh-amq-broker
     	dir: in
     }
 
@@ -178,33 +203,33 @@ data:
     # broker autolinks, both dir (in, out)
     autoLink {
       addr: rh.usecase.2.queue
-      connection: mesh-amq-broker
+      connection: zone-a-mesh-amq-broker
       dir: out
     }
     autoLink {
       addr: rh.usecase.2.queue
-      connection: mesh-amq-broker
+      connection: zone-a-mesh-amq-broker
       dir: in
     }
     # remote mesh autolinks, i will only push to the remote interconnect so no need for dir: in
     autoLink {
       addr: rh.usecase.2.queue
-      connection: remote-amq-mesh
+      connection: remote-amq-mesh-amqps-route
       dir: out
     }
 
-    linkRoute {
-      name: rh.usecase.3.in
-      pattern: rh/usecase/3/*
-      direction: in
-      connection: remote-amq-mesh
-    }
-    linkRoute {
-      name: rh.usecase.3.out
-      pattern: rh/usecase/3/*
-      direction: out
-      connection: remote-amq-mesh
-    }
+    # linkRoute {
+    #   name: rh.usecase.3.in
+    #   pattern: rh/usecase/3/*
+    #   direction: in
+    #   connection: remote-amq-mesh-inter-router-route
+    # }
+    # linkRoute {
+    #   name: rh.usecase.3.out
+    #   pattern: rh/usecase/3/*
+    #   direction: out
+    #   connection: remote-amq-mesh-inter-router-route
+    # }
     policy {
         enableVhostPolicy: true
         enableVhostNamePatterns: true

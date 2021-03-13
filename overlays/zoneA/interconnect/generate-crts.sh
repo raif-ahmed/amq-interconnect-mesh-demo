@@ -1,6 +1,5 @@
 AMQ_INTERCONNECT_SVC_URL=*.broker-with-interconnect-mesh.svc.cluster.local
-AMQ_INTERCONNECT_ROUTE_URL=DNS:amq-interconnect-edge-console-broker-with-interconnect-mesh.apps.cluster-f037.gcp.testdrive.openshift.com,DNS:amq-interconnect-mesh-console-broker-with-interconnect-mesh.apps.cluster-f037.gcp.testdrive.openshift.com
-AMQ_INTERCONNECT_AMQPS_ROUTE_URL=amq-interconnect-mesh-console-broker-with-interconnect-mesh.apps.cluster-f037.gcp.testdrive.openshift.com
+AMQ_INTERCONNECT_ROUTE_URL=DNS:amq-mesh-inter-router-broker-with-interconnect-mesh.apps.cluster-f037.gcp.testdrive.openshift.com,DNS:amq-edge-console-broker-with-interconnect-mesh.apps.cluster-f037.gcp.testdrive.openshift.com,DNS:amq-mesh-console-broker-with-interconnect-mesh.apps.cluster-f037.gcp.testdrive.openshift.com
 
 AMQ_CLIENT_KEYSTORE_PASSWORD=passw0rd
 
@@ -10,22 +9,13 @@ AMQ_CLIENT_KEYSTORE_PASSWORD=passw0rd
 rm -rf crt/internal-certs
 mkdir crt/internal-certs
 
-# Create a private key for the CA.
-openssl genrsa -out crt/internal-certs/ca-key.pem 2048
-
-# Create a certificate signing request for the CA.
-openssl req -new -sha256 -batch -key crt/internal-certs/ca-key.pem -out crt/internal-certs/ca-csr.pem -subj "/C=NL/ST=Amsterdam/L=Amsterdam/O=RH Demo/CN=RH Demo Root"
-
-# Self sign the CA certificate.
-openssl x509 -req -in crt/internal-certs/ca-csr.pem -signkey crt/internal-certs/ca-key.pem -out crt/internal-certs/ca.crt
-
-# Create a private key.
-openssl genrsa -out crt/internal-certs/tls.key 2048
+# copy the comon ca files
+cp ../../crt/ca-certs/tls.key ../../crt/ca-certs/ca.crt ../../crt/ca-certs/ca-key.pem crt/internal-certs
 
 # Create a certificate signing request for the router.
 openssl req -new -batch -subj "/CN=${AMQ_INTERCONNECT_SVC_URL}" -key crt/internal-certs/tls.key -out crt/internal-certs/server-csr.pem -addext "subjectAltName = ${AMQ_INTERCONNECT_ROUTE_URL}"
 
-# Sign the certificate using the CA.
+# Sign the certificate using the common CA.
 openssl x509 -req -in crt/internal-certs/server-csr.pem -CA crt/internal-certs/ca.crt -CAkey crt/internal-certs/ca-key.pem -out crt/internal-certs/tls.crt -CAcreateserial
 
 # oc create secret generic inter-router-certs-secret --from-file=tls.crt=internal-certs/tls.crt  --from-file=tls.key=internal-certs/tls.key  --from-file=ca.crt=internal-certs/ca.crt

@@ -1,7 +1,7 @@
 kind: Route
 apiVersion: route.openshift.io/v1
 metadata:
-  name: amq-interconnect-mesh-amqps
+  name: amq-mesh-amqps
 spec:
   port:
     targetPort: amqps

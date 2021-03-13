@@ -4,7 +4,7 @@ kind: Kustomization
 generatorOptions:
  disableNameSuffixHash: true
 
-namespace: broker-mesh
+namespace: broker-mesh-zone-b
 
 commonLabels:
   application: amq-broker
@@ -42,4 +42,4 @@ patches:
   patch: |-
     - op: replace
       path: /spec/targetNamespaces/0
-      value: broker-mesh
+      value: broker-mesh-zone-b

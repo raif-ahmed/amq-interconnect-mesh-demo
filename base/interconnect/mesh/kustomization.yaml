@@ -22,3 +22,4 @@ resources:
 - cm-sasl-config.yaml
 - route-console.yaml
 - route-amqps.yaml
+- route-inter-router.yaml
