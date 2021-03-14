@@ -65,12 +65,202 @@ In the inter-router role, the connection is assumed to be to another router in t
 So we have two options here; either
 
 . We connect routers to each other for the purposes of forming *one global* network, through Inter-router connection/listener.
-. We connect routers to each other as two *separate* networks that see each other merely as external AMQP services, through normal(amqps) connection/listener.
+. We connect routers to each other as two *separate* networks that see each other merely as external AMQP services, through normal(amqps) connection/listener. This setup can be useful in case each environment will be managed independently.
 
 
 image::images/mesh-design.png
 
-For the purpose of this PoC, we will use both connection/listener in different usecases.
+So lets see the configuration of both setups,
+
+. connect routers to each other for the purposes of forming *one global* network, through Inter-router connection/listener.
++
+We have the interconnect router listener on port 55677
++
+.overlays/zoneB/interconnect/mesh/cm.yaml
+[source,yaml]
+----
+...
+listener {
+    host: 0.0.0.0
+    port: 55677
+    sslProfile: inter_router_tls
+    authenticatePeer: yes
+    requireSsl: true
+    saslMechanisms: EXTERNAL PLAIN
+    role: inter-router
+    policyVhost: inter-router
+}
+...
+----
++
+Then we expose this port on both the deploymentConfig & Service
+.base/interconnect/mesh/dc.yaml
+[source,yaml]
+----
+...
+spec:
+  serviceAccountName: amq-interconnect-mesh
+  terminationGracePeriodSeconds: 60
+  containers:
+  - name: "amq-interconnect"
+    image: registry.redhat.io/amq7/amq-interconnect:latest
+    ports:
+    ...
+    - name: inter-ext
+      containerPort: 55677
+      protocol: TCP
+...
+----
++
+.base/interconnect/mesh/svc.yaml
+[source,yaml]
+----
+...
+spec:
+  ports:
+  ...
+  - port: 55677
+    name: inter-router-external
+    targetPort: 55677
+...
+----
++
+Then expose this port externally through a route
+.base/interconnect/mesh/route-inter-router.yaml
+[source,yaml]
+----
+kind: Route
+apiVersion: route.openshift.io/v1
+metadata:
+  name: amq-mesh-inter-router
+spec:
+  port:
+    targetPort: 55677
+  tls:
+    termination: passthrough
+  to:
+    kind: Service
+    name: amq-interconnect-mesh
+----
++
+The last thing is to connect through connector from other Zone to this route
+.overlays/zoneA/interconnect/mesh/cm.yaml
+[source,yaml]
+----
+...
+connector {
+    name: remote-amq-mesh-inter-router-route
+    host: amq-mesh-inter-router-broker-with-interconnect-mesh.apps.y3tpfd3p.westeurope.aroapp.io
+    port: 443
+    saslMechanisms: EXTERNAL PLAIN
+
+    sslProfile: inter_router_tls
+    saslUsername: remote_connection@amq-interconnect-mesh
+    saslPassword: passw0rd
+
+    role: inter-router
+    verifyHostname: false
+    idleTimeoutSeconds: 0
+    messageLoggingComponents: all
+}
+...
+----
+
+. connect routers to each other as two *separate* networks that see each other merely as external AMQP services, through normal(amqps) connection/listener. This setup can be useful in case each environment will be managed independently.
++
+We have the interconnect router listener on port amqps (5671)
++
+.overlays/zoneB/interconnect/mesh/cm.yaml
+[source,yaml]
+----
+...
+listener {
+    host: 0.0.0.0
+    port: amqps
+    # sslProfile: service_tls
+    sslProfile: client_tls
+    requireSsl: true
+    authenticatePeer: yes
+    saslMechanisms: EXTERNAL PLAIN
+    idleTimeoutSeconds: 0
+    messageLoggingComponents: all
+}
+----
++
+Then we expose this port on both the deploymentConfig & Service
+.base/interconnect/mesh/dc.yaml
+[source,yaml]
+----
+...
+spec:
+  serviceAccountName: amq-interconnect-mesh
+  terminationGracePeriodSeconds: 60
+  containers:
+  - name: "amq-interconnect"
+    image: registry.redhat.io/amq7/amq-interconnect:latest
+    ports:
+    ...
+    - name: amqps
+      containerPort: 5671
+      protocol: TCP
+...
+----
++
+.base/interconnect/mesh/svc.yaml
+[source,yaml]
+----
+...
+spec:
+  ports:
+  ...
+  - port: 5671
+    name: amqps
+    targetPort: 5671
+...
+----
++
+Then expose this port externally through a route
+.base/interconnect/mesh/route-amqps.yaml
+[source,yaml]
+----
+kind: Route
+apiVersion: route.openshift.io/v1
+metadata:
+  name: amq-mesh-amqps
+spec:
+  port:
+    targetPort: amqps
+  tls:
+    termination: passthrough
+  to:
+    kind: Service
+    name: amq-interconnect-mesh
+----
++
+The last thing is to connect through connector from other Zone to this route
+.overlays/zoneA/interconnect/mesh/cm.yaml
+[source,yaml]
+----
+...
+connector {
+    name: remote-amq-mesh-amqps-route
+    host: amq-mesh-amqps-broker-with-interconnect-mesh.apps.y3tpfd3p.westeurope.aroapp.io
+    port: 443
+    saslMechanisms: EXTERNAL PLAIN
+
+    sslProfile: client_tls
+    saslUsername: remote_connection@amq-interconnect-mesh
+    saslPassword: passw0rd
+
+    role: route-container
+    verifyHostname: false
+    idleTimeoutSeconds: 0
+    messageLoggingComponents: all
+}
+...
+----
+
+For the purpose of this PoC, we will use both connection/listener in different usecases, just to showcases.
 
 == Deploy Infrastructure
 
