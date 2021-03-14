@@ -146,55 +146,55 @@ data:
     }
     # broker autolinks, one dir (out)
     autoLink {
-      address: rh.usecase.2.queue
-      connection: zone-b-mesh-amq-broker
-      dir: out
-      phase: 0
-      externalAddr: rh.usecase.2.queue.q1::rh.usecase.2.queue.q1
+        address: rh.usecase.2.queue
+        connection: zone-b-mesh-amq-broker
+        direction: out
+        phase: 0
+        externalAddress: rh.usecase.2.queue.q1::rh.usecase.2.queue.q1
     }
     autoLink {
-      address: rh.usecase.2.queue
-      connection: zone-b-mesh-amq-broker
-      dir: out
-      phase: 0
-      externalAddr: rh.usecase.2.queue.q2::rh.usecase.2.queue.q2
+        address: rh.usecase.2.queue
+        connection: zone-b-mesh-amq-broker
+        direction: out
+        phase: 0
+        externalAddress: rh.usecase.2.queue.q2::rh.usecase.2.queue.q2
     }
 
     address {
         prefix: rh.usecase.2.q1
+        waypoint: true
         distribution: closest
     }
     autoLink {
-      address: rh.usecase.2.q1
-      connection: zone-b-mesh-amq-broker
-      dir: in
-      phase: 0
-      externalAddr: rh.usecase.2.queue.q1::rh.usecase.2.queue.q1
+        address: rh.usecase.2.q1
+        connection: zone-b-mesh-amq-broker
+        direction: in
+        externalAddress: rh.usecase.2.queue.q1::rh.usecase.2.queue.q1
     }
 
     address {
         prefix: rh.usecase.2.q2
+        waypoint: true
         distribution: closest
     }
     autoLink {
-      address: rh.usecase.2.q2
-      connection: zone-b-mesh-amq-broker
-      dir: in
-      phase: 0
-      externalAddr: rh.usecase.2.queue.q2::rh.usecase.2.queue.q2
+        address: rh.usecase.2.q2
+        connection: zone-b-mesh-amq-broker
+        direction: in
+        externalAddress: rh.usecase.2.queue.q2::rh.usecase.2.queue.q2
     }
 
     linkRoute {
-      name: rh.usecase.3.in
-      pattern: rh/usecase/3/*
-      direction: in
-      connection: zone-b-mesh-amq-broker
+        name: rh.usecase.3.in
+        pattern: rh/usecase/3/*
+        direction: in
+        connection: zone-b-mesh-amq-broker
     }
     linkRoute {
-      name: rh.usecase.3.out
-      pattern: rh/usecase/3/*
-      direction: out
-      connection: zone-b-mesh-amq-broker
+        name: rh.usecase.3.out
+        pattern: rh/usecase/3/*
+        direction: out
+        connection: zone-b-mesh-amq-broker
     }
 
     policy {

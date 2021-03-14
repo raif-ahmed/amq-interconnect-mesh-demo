@@ -146,35 +146,35 @@ data:
         distribution: multicast
     }
     address {
-      prefix: rh.usecase.2.q1
-      distribution: closest
+        prefix: rh.usecase.2.q1
+        distribution: closest
     }
     address {
-      prefix: rh.usecase.2.q2
-      distribution: closest
+        prefix: rh.usecase.2.q2
+        distribution: closest
     }
 
     address {
         prefix: rh.usecase.3.*
         distribution: closest
     }
-    
+
     address {
-      prefix: obis.onshore.vt.q1
-      waypoint: yes
+        prefix: obis.onshore.vt.q1
+        waypoint: yes
     }
     # broker autolinks, both dir (in, out)
     autoLink {
-      addr: obis.onshore.vt.q1
-      connection: wal-amq-broker
-      dir: out
-      externalAddr: obis.onshore.vt.q1::obis.onshore.vt.q1
+        address: obis.onshore.vt.q1
+        connection: wal-amq-broker
+        direction: out
+        externalAddr: obis.onshore.vt.q1::obis.onshore.vt.q1
     }
     autoLink {
-      addr: obis.onshore.vt.q1
-      connection: wal-amq-broker
-      dir: in
-      externalAddr: obis.onshore.vt.q1::obis.onshore.vt.q1
+        address: obis.onshore.vt.q1
+        connection: wal-amq-broker
+        direction: in
+        externalAddr: obis.onshore.vt.q1::obis.onshore.vt.q1
     }
     policy {
         enableVhostPolicy: true

@@ -179,14 +179,14 @@ data:
 
     }
     autoLink {
-    	address: rh.usecase.1.queue
-    	connection: zone-a-mesh-amq-broker
-    	dir: out
+      	address: rh.usecase.1.queue
+      	connection: zone-a-mesh-amq-broker
+      	direction: out
     }
     autoLink {
-    	address: rh.usecase.1.queue
-    	connection: zone-a-mesh-amq-broker
-    	dir: in
+      	address: rh.usecase.1.queue
+      	connection: zone-a-mesh-amq-broker
+      	direction: in
     }
 
     address {
@@ -197,20 +197,14 @@ data:
     }
     # broker autolinks, both dir (in, out)
     autoLink {
-      addr: rh.usecase.2.queue
-      connection: zone-a-mesh-amq-broker
-      dir: out
+        address: rh.usecase.2.queue
+        connection: zone-a-mesh-amq-broker
+        direction: out
     }
     autoLink {
-      addr: rh.usecase.2.queue
-      connection: zone-a-mesh-amq-broker
-      dir: in
-    }
-    # remote mesh autolinks, i will only push to the remote interconnect so no need for dir: in
-    autoLink {
-      addr: rh.usecase.2.queue
-      connection: remote-amq-mesh-amqps-route
-      dir: out
+        address: rh.usecase.2.queue
+        connection: zone-a-mesh-amq-broker
+        direction: in
     }
 
     policy {

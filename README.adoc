@@ -603,25 +603,17 @@ address {
 }
 # broker autolinks, both dir (in, out)
 autoLink {
-  addr: rh.usecase.2.queue
-  connection: zone-a-mesh-amq-broker
-  dir: out
+    address: rh.usecase.2.queue
+    connection: zone-a-mesh-amq-broker
+    direction: out
 }
 autoLink {
-  addr: rh.usecase.2.queue
-  connection: zone-a-mesh-amq-broker
-  dir: in
-}
-# remote mesh autolinks, i will only push to the remote interconnect so no need for dir: in
-autoLink {
-  addr: rh.usecase.2.queue
-  connection: remote-amq-mesh-amqps-route <1>
-  dir: out
+    address: rh.usecase.2.queue
+    connection: zone-a-mesh-amq-broker
+    direction: in
 }
 ...
 ----
-<1> I'm using the AMQPs connection to zoneB as I want to multicast twice,
-so i want delivery (message) to transfer to ZoneB as if it coming from an external (normal) client sending messages to (rh.usecase.2.queue). See next 
 
 .overlays/zoneB/interconnect/mesh/cm.yaml
 [source,yaml]
@@ -633,42 +625,42 @@ address {
 }
 # broker autolinks, one dir (out)
 autoLink {
-  address: rh.usecase.2.queue
-  connection: zone-b-mesh-amq-broker
-  dir: out
-  phase: 0
-  externalAddr: rh.usecase.2.queue.q1::rh.usecase.2.queue.q1
+    address: rh.usecase.2.queue
+    connection: zone-b-mesh-amq-broker
+    direction: out
+    phase: 0
+    externalAddress: rh.usecase.2.queue.q1::rh.usecase.2.queue.q1
 }
 autoLink {
-  address: rh.usecase.2.queue
-  connection: zone-b-mesh-amq-broker
-  dir: out
-  phase: 0
-  externalAddr: rh.usecase.2.queue.q2::rh.usecase.2.queue.q2
+    address: rh.usecase.2.queue
+    connection: zone-b-mesh-amq-broker
+    direction: out
+    phase: 0
+    externalAddress: rh.usecase.2.queue.q2::rh.usecase.2.queue.q2
 }
 
 address {
     prefix: rh.usecase.2.q1
+    waypoint: true
     distribution: closest
 }
 autoLink {
-  address: rh.usecase.2.q1
-  connection: zone-b-mesh-amq-broker
-  dir: in
-  phase: 0
-  externalAddr: rh.usecase.2.queue.q1::rh.usecase.2.queue.q1
+    address: rh.usecase.2.q1
+    connection: zone-b-mesh-amq-broker
+    direction: in
+    externalAddress: rh.usecase.2.queue.q1::rh.usecase.2.queue.q1
 }
 
 address {
     prefix: rh.usecase.2.q2
+    waypoint: true
     distribution: closest
 }
 autoLink {
-  address: rh.usecase.2.q2
-  connection: zone-b-mesh-amq-broker
-  dir: in
-  phase: 0
-  externalAddr: rh.usecase.2.queue.q2::rh.usecase.2.queue.q2
+    address: rh.usecase.2.q2
+    connection: zone-b-mesh-amq-broker
+    direction: in
+    externalAddress: rh.usecase.2.queue.q2::rh.usecase.2.queue.q2
 }
 ...
 ----
@@ -678,12 +670,12 @@ autoLink {
 ----
 ...
 address {
-  prefix: rh.usecase.2.q1
-  distribution: closest
+    prefix: rh.usecase.2.q1
+    distribution: closest
 }
 address {
-  prefix: rh.usecase.2.q2
-  distribution: closest
+    prefix: rh.usecase.2.q2
+    distribution: closest
 }
 ...
 ----
