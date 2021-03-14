@@ -68,7 +68,7 @@ So we have two options here; either
 . We connect routers to each other as two *separate* networks that see each other merely as external AMQP services, through normal(amqps) connection/listener. This setup can be useful in case each environment will be managed independently.
 
 
-image::images/mesh-design.png
+image::images/mesh-design.png[]
 
 So lets see the configuration of both setups,
 
@@ -94,6 +94,7 @@ listener {
 ----
 +
 Then we expose this port on both the deploymentConfig & Service
++
 .base/interconnect/mesh/dc.yaml
 [source,yaml]
 ----
@@ -126,6 +127,7 @@ spec:
 ----
 +
 Then expose this port externally through a route
++
 .base/interconnect/mesh/route-inter-router.yaml
 [source,yaml]
 ----
@@ -144,6 +146,7 @@ spec:
 ----
 +
 The last thing is to connect through connector from other Zone to this route
++
 .overlays/zoneA/interconnect/mesh/cm.yaml
 [source,yaml]
 ----
@@ -188,6 +191,7 @@ listener {
 ----
 +
 Then we expose this port on both the deploymentConfig & Service
++
 .base/interconnect/mesh/dc.yaml
 [source,yaml]
 ----
@@ -220,6 +224,7 @@ spec:
 ----
 +
 Then expose this port externally through a route
++
 .base/interconnect/mesh/route-amqps.yaml
 [source,yaml]
 ----
@@ -238,6 +243,7 @@ spec:
 ----
 +
 The last thing is to connect through connector from other Zone to this route
++
 .overlays/zoneA/interconnect/mesh/cm.yaml
 [source,yaml]
 ----
