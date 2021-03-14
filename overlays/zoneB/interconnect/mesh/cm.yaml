@@ -110,12 +110,7 @@ data:
         certFile: /etc/qpid-dispatch-certs/normal/tls.crt
         privateKeyFile: /etc/qpid-dispatch-certs/normal/tls.key
     }
-    # sslProfile {
-    #     name: broker_tls
-    #     # certFile: /etc/qpid-dispatch-certs/broker/tls.crt
-    #     # privateKeyFile: /etc/qpid-dispatch-certs/broker/tls.key
-    #     caCertFile: /etc/qpid-dispatch-certs/broker/ca.crt
-    # }
+
     sslProfile {
         name: client_tls
         certFile: /etc/qpid-dispatch-certs/client/tls.crt

@@ -142,12 +142,7 @@ data:
         certFile: /etc/qpid-dispatch-certs/normal/tls.crt
         privateKeyFile: /etc/qpid-dispatch-certs/normal/tls.key
     }
-    # sslProfile {
-    #     name: broker_tls
-    #     # certFile: /etc/qpid-dispatch-certs/broker/tls.crt
-    #     # privateKeyFile: /etc/qpid-dispatch-certs/broker/tls.key
-    #     caCertFile: /etc/qpid-dispatch-certs/broker/ca.crt
-    # }
+
     sslProfile {
         name: client_tls
         certFile: /etc/qpid-dispatch-certs/client/tls.crt
@@ -218,18 +213,6 @@ data:
       dir: out
     }
 
-    # linkRoute {
-    #   name: rh.usecase.3.in
-    #   pattern: rh/usecase/3/*
-    #   direction: in
-    #   connection: remote-amq-mesh-inter-router-route
-    # }
-    # linkRoute {
-    #   name: rh.usecase.3.out
-    #   pattern: rh/usecase/3/*
-    #   direction: out
-    #   connection: remote-amq-mesh-inter-router-route
-    # }
     policy {
         enableVhostPolicy: true
         enableVhostNamePatterns: true

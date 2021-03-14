@@ -7,6 +7,7 @@
 :stylesheet: colony.css
 
 = Amq Interconnect Mesh Demo
+:data-uri:
 
 :toc:
 :toc-title: Blog Contents
@@ -23,6 +24,222 @@
 
 .*Sample Code:*
 ** https://github.com/rahmed-rh/jms-amqp-demo[]
+
+== Designing The Topology
+
+Conceptually we have two public clouds, and we want to host a messaging middleware infrastructure on each cloud and link them together as a WAN messaging middleware.
+
+So For that reason we need to look on how interconnect listening for incoming connections.
+In the following code excerpt you can see two (2) listeners, each with different role.
+
+[source,yaml]
+----
+...
+listener {
+    host: 0.0.0.0
+    port: amqps
+    sslProfile: client_tls
+    requireSsl: true
+    authenticatePeer: yes
+    saslMechanisms: EXTERNAL PLAIN
+    role: normal <1>
+    idleTimeoutSeconds: 0
+    messageLoggingComponents: all
+}
+listener {
+    host: 0.0.0.0
+    port: 55677
+    sslProfile: inter_router_tls
+    authenticatePeer: yes
+    requireSsl: true
+    saslMechanisms: EXTERNAL PLAIN
+    role: inter-router <1>
+    policyVhost: inter-router
+}
+...
+----
+<1> role (One of [normal, inter-router, route-container, edge]). The role of an established connection.
+In the normal role, the connection is assumed to be used for AMQP clients that are doing normal message delivery over the connection.
+In the inter-router role, the connection is assumed to be to another router in the network. Inter-router discovery and routing protocols can only be used over inter-router connections.
+
+So we have two options here; either
+
+. We connect routers to each other for the purposes of forming *one global* network, through Inter-router connection/listener.
+. We connect routers to each other as two *separate* networks that see each other merely as external AMQP services, through normal(amqps) connection/listener.
+
+
+image::images/mesh-design.png
+
+For the purpose of this PoC, we will use both connection/listener in different usecases.
+
+== Deploy Infrastructure
+
+In the next section, I'm going to explain how to deploy the demo Infrastructure which is using two (2) public clouds.
+
+First Step is to generate the Certificates, which will need to secure the communication between different components for this we will do the following
+
+=== Generate Common CA Certs
+
+We start by generating a common CA Cert which we will use to sign all internal routers certificates, in different clusters/zones.
+
+[source,bash]
+----
+$ cd amq-interconnect-mesh-demo/overlays
+$ ./generate-crts.sh
+
+$ ll crt/ca-certs/
+total 16
+-rw-rw-r--. 1 rahmed rahmed 1192 Mar 12 10:19 ca.crt
+-rw-rw-r--. 1 rahmed rahmed  993 Mar 12 10:19 ca-csr.pem
+-rw-------. 1 rahmed rahmed 1675 Mar 12 10:19 ca-key.pem
+-rw-------. 1 rahmed rahmed 1675 Mar 12 10:19 tls.key
+----
+
+=== Generate Interconnect Certificates for each Zone
+Now, for each Zone/Cluster we will generate certificates for Interconnect.
+
+We need two (2) kind of certificates;
+
+* The Internal Router certificate, which the router will use to take to its peer routers (interior,edge) to form a routers mesh
+* The Client/Service Certificate (AMQPs), which will be exposed to clients (internal within OpenShift, or external outside OpenShift) trying to connect to server.
+
+The bash script generate both certificates in one go.
+
+[[link-internal-router-cert]]
+==== The Internal Router certificate
+
+We will start by generating the Internal router certificates.
+
+Start by ZoneA
+
+[source,bash]
+----
+$ cd overlays/zoneA/interconnect
+$ ./generate-crts.sh
+
+$ ll crt/
+client-certs/   internal-certs/
+
+$ ll internal-certs/
+total 24
+-rw-rw-r--. 1 rahmed rahmed 1192 Mar 12 10:39 ca.crt
+-rw-------. 1 rahmed rahmed 1675 Mar 12 10:39 ca-key.pem
+-rw-rw-r--. 1 rahmed rahmed   41 Mar 12 10:39 ca.srl
+-rw-rw-r--. 1 rahmed rahmed 1281 Mar 12 10:39 server-csr.pem
+-rw-rw-r--. 1 rahmed rahmed 1147 Mar 12 10:39 tls.crt
+-rw-------. 1 rahmed rahmed 1675 Mar 12 10:39 tls.key
+
+----
+
+then, the same for ZoneB
+
+[source,bash]
+----
+$ cd overlays/zoneB/interconnect
+$ ./generate-crts.sh
+
+$ ll crt/
+client-certs/   internal-certs/
+
+$ ll crt/internal-certs/
+total 24
+-rw-rw-r--. 1 rahmed rahmed 1192 Mar 12 10:43 ca.crt
+-rw-------. 1 rahmed rahmed 1675 Mar 12 10:43 ca-key.pem
+-rw-rw-r--. 1 rahmed rahmed   41 Mar 12 10:43 ca.srl
+-rw-rw-r--. 1 rahmed rahmed 1253 Mar 12 10:43 server-csr.pem
+-rw-rw-r--. 1 rahmed rahmed 1147 Mar 12 10:43 tls.crt
+-rw-------. 1 rahmed rahmed 1675 Mar 12 10:43 tls.key
+
+----
+
+==== The Client/Service Certificate (AMQPs)
+
+As mentioned the Client/Service Certificate is for serving Client connecting on AMQPs so it should contain
+
+* Service Url for clients connecting from inside the OpenShift Cluster
+* Route Url for clients connecting from outside the OpenShift Cluster
+
+We will generate the Certificate where the CN is the Service Url, and the additional SANs are the Routes Urls
+To customize the Urls (you will need to adjust the svc and route urls to match your environment),
+
+
+[source,bash]
+----
+AMQ_INTERCONNECT_SVC_URL=*.broker-with-interconnect-mesh.svc.cluster.local
+AMQ_INTERCONNECT_ROUTE_URL=DNS:amq-interconnect-edge-console-broker-with-interconnect-mesh.apps.cluster-f037.gcp.testdrive.openshift.com,DNS:amq-interconnect-mesh-console-broker-with-interconnect-mesh.apps.cluster-f037.gcp.testdrive.openshift.com
+----
+
+Also As mentioned before, the bash script generate both certificates (Internal Router, Client/Service) in one go.
+So from the previous step <<link-internal-router-cert,internal router certificate>> the Client/Service Certificate should also be generated
+
+[source,bash]
+----
+$ cd overlays/zoneA/interconnect
+
+$ ll crt/
+client-certs/   internal-certs/
+
+$ ll crt/client-certs/
+total 20
+-rw-rw-r--. 1 rahmed rahmed 1131 Mar 12 10:31 client.der
+-rw-rw-r--. 1 rahmed rahmed 2823 Mar 12 10:31 client.ks
+-rw-rw-r--. 1 rahmed rahmed    9 Mar 12 10:31 password.txt
+-rw-rw-r--. 1 rahmed rahmed 1586 Mar 12 10:31 tls.crt
+-rw-------. 1 rahmed rahmed 1679 Mar 12 10:31 tls.key
+----
+
+then, also check ZoneB
+
+[source,bash]
+----
+$ cd overlays/zoneB/interconnect
+
+$ ll crt/
+client-certs/   internal-certs/
+
+$ ll crt/client-certs/
+total 20
+-rw-rw-r--. 1 rahmed rahmed 1107 Mar 12 10:43 client.der
+-rw-rw-r--. 1 rahmed rahmed 2799 Mar 12 10:43 client.ks
+-rw-rw-r--. 1 rahmed rahmed    9 Mar 12 10:43 password.txt
+-rw-rw-r--. 1 rahmed rahmed 1554 Mar 12 10:43 tls.crt
+-rw-------. 1 rahmed rahmed 1675 Mar 12 10:43 tls.key
+----
+
+The we need to Copy tls.crt from ZoneA as ca.crt in ZoneB and vice versa,
+so they can trust each other incase we need to talk on Client/Service exposed ocp route.
+
+[source,bash]
+----
+$ cp overlays/zoneB/interconnect/crt/client-certs/tls.crt overlays/zoneA/interconnect/crt/client-certs/ca.crt
+$ cp overlays/zoneA/interconnect/crt/client-certs/tls.crt overlays/zoneB/interconnect/crt/client-certs/ca.crt
+
+$ ll overlays/zoneA/interconnect/crt/client-certs/
+total 24
+-rw-rw-r--. 1 rahmed rahmed 1700 Mar 13 20:37 ca.crt
+-rw-rw-r--. 1 rahmed rahmed 1246 Mar 12 13:10 client.der
+-rw-rw-r--. 1 rahmed rahmed 2943 Mar 12 13:10 client.ks
+-rw-rw-r--. 1 rahmed rahmed    9 Mar 12 13:10 password.txt
+-rw-rw-r--. 1 rahmed rahmed 1744 Mar 12 13:10 tls.crt
+-rw-------. 1 rahmed rahmed 1675 Mar 12 13:10 tls.key
+
+$ ll overlays/zoneB/interconnect/crt/client-certs/
+total 24
+-rw-rw-r--. 1 rahmed rahmed 1744 Mar 13 20:37 ca.crt
+-rw-rw-r--. 1 rahmed rahmed 1213 Mar 12 13:11 client.der
+-rw-rw-r--. 1 rahmed rahmed 2911 Mar 12 13:11 client.ks
+-rw-rw-r--. 1 rahmed rahmed    9 Mar 12 13:11 password.txt
+-rw-rw-r--. 1 rahmed rahmed 1700 Mar 12 13:11 tls.crt
+-rw-------. 1 rahmed rahmed 1675 Mar 12 13:11 tls.key
+
+----
+
+[source,bash]
+----
+kustomize build overlays/zoneA | oc apply -f -
+kustomize build overlays/zoneB | oc apply -f -
+
+----
 
 [[link-message-routing]]
 == Message Routing
@@ -398,11 +615,13 @@ autoLink {
 # remote mesh autolinks, i will only push to the remote interconnect so no need for dir: in
 autoLink {
   addr: rh.usecase.2.queue
-  connection: remote-amq-mesh-amqps-route
+  connection: remote-amq-mesh-amqps-route <1>
   dir: out
 }
 ...
 ----
+<1> I'm using the AMQPs connection to zoneB as I want to multicast twice,
+so i want delivery (message) to transfer to ZoneB as if it coming from an external (normal) client sending messages to (rh.usecase.2.queue). See next 
 
 .overlays/zoneB/interconnect/mesh/cm.yaml
 [source,yaml]
@@ -573,7 +792,7 @@ then using link routing, message should propagated to zone B and address is crea
                       | router |         | broker |
                       +--------+         +--------+
                           |
-                          |link
+                          |
                           |
                           v
                       +--------+  link   +--------+       /-----------\
@@ -591,6 +810,8 @@ then using link routing, message should propagated to zone B and address is crea
 
 So the flow will be from Edge Router (Zone A) -> Mesh Router (Zone A) -> Mesh Router (Zone B) -> Mesh Broker (Zone B) -> Edge Router (Zone B)
 
+Please note in this usecase, the "linkRoute" defined in ZoneB will be discovered by the network through the inter-route connection.
+
 lets see the qpid config
 
 .overlays/zoneA/interconnect/edge/cm.yaml
@@ -604,25 +825,6 @@ address {
 ...
 ----
 
-.overlays/zoneA/interconnect/mesh/cm.yaml
-[source,yaml]
-----
-...
-linkRoute {
-  name: rh.usecase.3.in
-  pattern: rh/usecase/3/*
-  direction: in
-  connection: remote-amq-mesh
-}
-linkRoute {
-  name: rh.usecase.3.out
-  pattern: rh/usecase/3/*
-  direction: out
-  connection: remote-amq-mesh
-}
-...
-----
-
 .overlays/zoneB/interconnect/mesh/cm.yaml
 [source,yaml]
 ----
@@ -631,14 +833,13 @@ linkRoute {
   name: rh.usecase.3.in
   pattern: rh/usecase/3/*
   direction: in
-  connection: mesh-amq-broker
+  connection: zone-b-mesh-amq-broker
 }
 linkRoute {
   name: rh.usecase.3.out
   pattern: rh/usecase/3/*
   direction: out
-  connection: mesh-amq-broker
-}
+  connection: zone-b-mesh-amq-broker
 ...
 ----
 
@@ -684,174 +885,4 @@ for (int i=0;i<producerCount;i++)
 // Generate Consumers on the prviously defined dummy queue
 for (int i=0;i<consumerCount;i++)
 	usecase2QueueExecutor.execute(usecase3QueueConsumer1);
-----
-
-
-== Deploy Infrastructure
-
-In the next section, I'm going to explain how to deploy the demo Infrastructure which is using two (2) public clouds.
-
-First Step is to generate the Certificates, which will need to secure the communication between different components for this we will do the following
-
-=== Generate Common CA Certs
-
-We start by generating a common CA Cert which we will use to sign all internal routers certificates, in different clusters/zones.
-
-[source,bash]
-----
-$ cd amq-interconnect-mesh-demo/overlays
-$ ./generate-crts.sh
-
-$ ll crt/ca-certs/
-total 16
--rw-rw-r--. 1 rahmed rahmed 1192 Mar 12 10:19 ca.crt
--rw-rw-r--. 1 rahmed rahmed  993 Mar 12 10:19 ca-csr.pem
--rw-------. 1 rahmed rahmed 1675 Mar 12 10:19 ca-key.pem
--rw-------. 1 rahmed rahmed 1675 Mar 12 10:19 tls.key
-----
-
-=== Generate Interconnect Certificates for each Zone
-Now, for each Zone/Cluster we will generate certificates for Interconnect.
-
-We need two (2) kind of certificates;
-
-* The Internal Router certificate, which the router will use to take to its peer routers (interior,edge) to form a routers mesh
-* The Client/Service Certificate (AMQPs), which will be exposed to clients (internal within OpenShift, or external outside OpenShift) trying to connect to server.
-
-The bash script generate both certificates in one go.
-
-[[link-internal-router-cert]]
-==== The Internal Router certificate
-
-We will start by generating the Internal router certificates.
-
-Start by ZoneA
-
-[source,bash]
-----
-$ cd overlays/zoneA/interconnect
-$ ./generate-crts.sh
-
-$ ll crt/
-client-certs/   internal-certs/
-
-$ ll internal-certs/
-total 24
--rw-rw-r--. 1 rahmed rahmed 1192 Mar 12 10:39 ca.crt
--rw-------. 1 rahmed rahmed 1675 Mar 12 10:39 ca-key.pem
--rw-rw-r--. 1 rahmed rahmed   41 Mar 12 10:39 ca.srl
--rw-rw-r--. 1 rahmed rahmed 1281 Mar 12 10:39 server-csr.pem
--rw-rw-r--. 1 rahmed rahmed 1147 Mar 12 10:39 tls.crt
--rw-------. 1 rahmed rahmed 1675 Mar 12 10:39 tls.key
-
-----
-
-then, the same for ZoneB
-
-[source,bash]
-----
-$ cd overlays/zoneB/interconnect
-$ ./generate-crts.sh
-
-$ ll crt/
-client-certs/   internal-certs/
-
-$ ll crt/internal-certs/
-total 24
--rw-rw-r--. 1 rahmed rahmed 1192 Mar 12 10:43 ca.crt
--rw-------. 1 rahmed rahmed 1675 Mar 12 10:43 ca-key.pem
--rw-rw-r--. 1 rahmed rahmed   41 Mar 12 10:43 ca.srl
--rw-rw-r--. 1 rahmed rahmed 1253 Mar 12 10:43 server-csr.pem
--rw-rw-r--. 1 rahmed rahmed 1147 Mar 12 10:43 tls.crt
--rw-------. 1 rahmed rahmed 1675 Mar 12 10:43 tls.key
-
-----
-
-==== The Client/Service Certificate (AMQPs)
-
-As mentioned the Client/Service Certificate is for serving Client connecting on AMQPs so it should contain
-
-* Service Url for clients connecting from inside the OpenShift Cluster
-* Route Url for clients connecting from outside the OpenShift Cluster
-
-We will generate the Certificate where the CN is the Service Url, and the additional SANs are the Routes Urls
-To customize the Urls (you will need to adjust the svc and route urls to match your environment),
-
-
-[source,bash]
-----
-AMQ_INTERCONNECT_SVC_URL=*.broker-with-interconnect-mesh.svc.cluster.local
-AMQ_INTERCONNECT_ROUTE_URL=DNS:amq-interconnect-edge-console-broker-with-interconnect-mesh.apps.cluster-f037.gcp.testdrive.openshift.com,DNS:amq-interconnect-mesh-console-broker-with-interconnect-mesh.apps.cluster-f037.gcp.testdrive.openshift.com
-----
-
-Also As mentioned before, the bash script generate both certificates (Internal Router, Client/Service) in one go.
-So from the previous step <<link-internal-router-cert,internal router certificate>> the Client/Service Certificate should also be generated
-
-[source,bash]
-----
-$ cd overlays/zoneA/interconnect
-
-$ ll crt/
-client-certs/   internal-certs/
-
-$ ll crt/client-certs/
-total 20
--rw-rw-r--. 1 rahmed rahmed 1131 Mar 12 10:31 client.der
--rw-rw-r--. 1 rahmed rahmed 2823 Mar 12 10:31 client.ks
--rw-rw-r--. 1 rahmed rahmed    9 Mar 12 10:31 password.txt
--rw-rw-r--. 1 rahmed rahmed 1586 Mar 12 10:31 tls.crt
--rw-------. 1 rahmed rahmed 1679 Mar 12 10:31 tls.key
-----
-
-then, also check ZoneB
-
-[source,bash]
-----
-$ cd overlays/zoneB/interconnect
-
-$ ll crt/
-client-certs/   internal-certs/
-
-$ ll crt/client-certs/
-total 20
--rw-rw-r--. 1 rahmed rahmed 1107 Mar 12 10:43 client.der
--rw-rw-r--. 1 rahmed rahmed 2799 Mar 12 10:43 client.ks
--rw-rw-r--. 1 rahmed rahmed    9 Mar 12 10:43 password.txt
--rw-rw-r--. 1 rahmed rahmed 1554 Mar 12 10:43 tls.crt
--rw-------. 1 rahmed rahmed 1675 Mar 12 10:43 tls.key
-----
-
-The we need to Copy tls.crt from ZoneA as ca.crt in ZoneB and vice versa,
-so they can trust each other incase we need to talk on Client/Service exposed ocp route.
-
-[source,bash]
-----
-$ cp overlays/zoneB/interconnect/crt/client-certs/tls.crt overlays/zoneA/interconnect/crt/client-certs/ca.crt
-$ cp overlays/zoneA/interconnect/crt/client-certs/tls.crt overlays/zoneB/interconnect/crt/client-certs/ca.crt
-
-$ ll overlays/zoneA/interconnect/crt/client-certs/
-total 24
--rw-rw-r--. 1 rahmed rahmed 1700 Mar 13 20:37 ca.crt
--rw-rw-r--. 1 rahmed rahmed 1246 Mar 12 13:10 client.der
--rw-rw-r--. 1 rahmed rahmed 2943 Mar 12 13:10 client.ks
--rw-rw-r--. 1 rahmed rahmed    9 Mar 12 13:10 password.txt
--rw-rw-r--. 1 rahmed rahmed 1744 Mar 12 13:10 tls.crt
--rw-------. 1 rahmed rahmed 1675 Mar 12 13:10 tls.key
-
-$ ll overlays/zoneB/interconnect/crt/client-certs/
-total 24
--rw-rw-r--. 1 rahmed rahmed 1744 Mar 13 20:37 ca.crt
--rw-rw-r--. 1 rahmed rahmed 1213 Mar 12 13:11 client.der
--rw-rw-r--. 1 rahmed rahmed 2911 Mar 12 13:11 client.ks
--rw-rw-r--. 1 rahmed rahmed    9 Mar 12 13:11 password.txt
--rw-rw-r--. 1 rahmed rahmed 1700 Mar 12 13:11 tls.crt
--rw-------. 1 rahmed rahmed 1675 Mar 12 13:11 tls.key
-
-----
-
-[source,bash]
-----
-kustomize build overlays/zoneA | oc apply -f -
-kustomize build overlays/zoneB | oc apply -f -
-
 ----
