@@ -64,7 +64,7 @@ data:
 
     }
     connector {
-        name: edge-amq-broker
+        name: zone-b-edge-amq-broker
 
         # port: amqps
         # saslMechanisms: EXTERNAL
@@ -171,11 +171,12 @@ data:
         externalAddr: obis.onshore.vt.q1::obis.onshore.vt.q1
     }
     autoLink {
-        address: obis.onshore.vt.q1
+        address: obis.onshozone-b-edge-amq-broker
         connection: wal-amq-broker
         direction: in
         externalAddr: obis.onshore.vt.q1::obis.onshore.vt.q1
     }
+
     policy {
         enableVhostPolicy: true
         enableVhostNamePatterns: true

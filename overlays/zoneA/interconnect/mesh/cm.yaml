@@ -207,6 +207,19 @@ data:
         direction: in
     }
 
+    linkRoute {
+        name: rh.usecase.4.zone-a.in
+        pattern: rh/usecase/4/*
+        direction: in
+        connection: zone-a-mesh-amq-broker
+    }
+    linkRoute {
+        name: rh.usecase.4.zone-a.out
+        pattern: rh/usecase/4/*
+        direction: out
+        connection: zone-a-mesh-amq-broker
+    }
+
     policy {
         enableVhostPolicy: true
         enableVhostNamePatterns: true

@@ -64,7 +64,7 @@ data:
 
     }
     connector {
-        name: edge-amq-broker
+        name: zone-a-edge-amq-broker
 
         # port: amqps
         # saslMechanisms: EXTERNAL
@@ -150,13 +150,13 @@ data:
     # broker autolinks, both dir (in, out)
     autoLink {
       addr: edge.zonea.messaging.queue
-      connection: edge-amq-broker
+      connection: zone-a-edge-amq-broker
       dir: out
       externalAddr: edge.zonea.messaging.queue::edge.zonea.messaging.queue
     }
     autoLink {
       addr: edge.zonea.messaging.queue
-      connection: edge-amq-broker
+      connection: zone-a-edge-amq-broker
       dir: in
       externalAddr: edge.zonea.messaging.queue::edge.zonea.messaging.queue
 

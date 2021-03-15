@@ -612,12 +612,12 @@ Produce and Consume messages to/from address on the edge broker, this address sh
 The message routing auto-links should match an 'explicit' address inside the broker.
 
 
- +----------+  add q  +--------+         +--------+
- | Producer | +-----> |        |         |        |
- +----------+         |  Edge  | +-----> |  Edge  |
- +----------+  add q  | router |         | broker |
- | Consumer | +-----> |        |         |        |
- +----------+         +--------+         +--------+
+ +----------+  add q  +--------+
+ | Producer | +-----> |        |
+ +----------+         |  Edge  |
+ +----------+  add q  | router |
+ | Consumer | +-----> |        |
+ +----------+         +--------+
                            |
                            |
                            v
@@ -741,10 +741,10 @@ and propagated to zone B and fan put to q1,q2 address created inside the broker 
 
 [ditaa]
 ....
-+----------+  add q  +--------+         +--------+          /-----------\
-| Producer | +-----> |  Edge  | +-----> |  Edge  |          |   Zone A  |
-+----------+         | router |         | Broker |          \-----------/
-                     +--------+         +--------+
++----------+  add q  +--------+                           /-----------\
+| Producer | +-----> |  Edge  |                           |   Zone A  |
++----------+         | router |                           \-----------/
+                     +--------+
                           |
                           |
                           v
@@ -753,7 +753,7 @@ and propagated to zone B and fan put to q1,q2 address created inside the broker 
                       | router |         | broker |
                       +--------+         +--------+
                           |
-                          |add q
+                          | add q
                           |
                           v
                       +--------+   q1    +--------+       /-----------\
@@ -968,10 +968,10 @@ then using link routing, message should propagated to zone B and address is crea
 
 [ditaa]
 ....
-+----------+  add q  +--------+         +--------+          /-----------\
-| Producer | +-----> |  Edge  | +-----> |  Edge  |          |   Zone A  |
-+----------+         | router |         | Broker |          \-----------/
-                     +--------+         +--------+
++----------+  add q  +--------+                           /-----------\
+| Producer | +-----> |  Edge  |                           |   Zone A  |
++----------+         | router |                           \-----------/
+                     +--------+
                           |
                           |
                           v
@@ -1066,11 +1066,11 @@ JMSQueueConsumer usecase3QueueConsumer1 = new JMSQueueConsumer(connectionFactory
 
 Executor usecase2QueueExecutor = Executors.newFixedThreadPool(consumerCount+producerCount);
 
-// Generate Producers on any dummy queue, it should be aut-created
+// Generate Producers on any dummy queue, it should be auto-created
 for (int i=0;i<producerCount;i++)
 	usecase2QueueExecutor.execute(usecase3QueueProducer);
 
-// Generate Consumers on the prviously defined dummy queue
+// Generate Consumers on the previously defined dummy queue
 for (int i=0;i<consumerCount;i++)
 	usecase2QueueExecutor.execute(usecase3QueueConsumer1);
 ----
