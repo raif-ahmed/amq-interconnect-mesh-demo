@@ -611,20 +611,7 @@ https://access.redhat.com/documentation/en-us/red_hat_amq/7.7/html/using_the_amq
 Produce and Consume messages to/from address on the edge broker, this address should be created inside the broker attached to the interior mesh.
 The message routing auto-links should match an 'explicit' address inside the broker.
 
-
- +----------+  add q  +--------+
- | Producer | +-----> |        |
- +----------+         |  Edge  |
- +----------+  add q  | router |
- | Consumer | +-----> |        |
- +----------+         +--------+
-                           |
-                           |
-                           v
-                      +--------+  add q  +--------+
-                      |  Mesh  | +-----> |  Mesh  |
-                      | router |         | broker |
-                      +--------+         +--------+
+image::images/usecase-1.png[]
 
 So the flow will be from Edge Router -> Mesh -> Broker
 
@@ -739,38 +726,7 @@ Produce messages to address on the edge broker in zone A,
 then using message routing logic message message should be delivered to an address created inside the broker attached to the interior mesh,
 and propagated to zone B and fan put to q1,q2 address created inside the broker attached to the interior mesh in zone B.
 
-[ditaa]
-....
-+----------+  add q  +--------+                           /-----------\
-| Producer | +-----> |  Edge  |                           |   Zone A  |
-+----------+         | router |                           \-----------/
-                     +--------+
-                          |
-                          |
-                          v
-                      +--------+  add q  +--------+
-                      |  Mesh  | +-----> |  Mesh  |
-                      | router |         | broker |
-                      +--------+         +--------+
-                          |
-                          | add q
-                          |
-                          v
-                      +--------+   q1    +--------+       /-----------\
-                      |  Mesh  | +-----> |  Mesh  |       |   Zone B  |
-                      | router |   q2    | broker |       \-----------/
-                      |        | +-----> |        |
-                      +--------+         +--------+
-                           |
-                           |
-                           v
-                      +--------+   q1    +------------+
-                      |        | +-----> |  Consumer  |
-                      |  Edge  |         +------------+
-                      | router |   q2    +------------+
-                      |        | +-----> |  Consumer  |
-                      +--------+         +------------+
-....
+image::images/usecase-2.png[]
 
 So the flow will be from Edge Router (Zone A) -> Mesh Router (Zone A) *multicast*-> Mesh Broker (Zone A) && Mesh Router (Zone B) *multicast*-> Mesh Broker (q1 && q2) -> Edge Router (q1, q2)
 
@@ -966,35 +922,7 @@ so the router doesn’t make any decision on single message basis but it has onl
 Produce messages to address on the edge broker in zone A, this address is dynamic (using wild card matching)
 then using link routing, message should propagated to zone B and address is created (the dynamic address name) inside the broker attached to the interior mesh in zone B.
 
-[ditaa]
-....
-+----------+  add q  +--------+                           /-----------\
-| Producer | +-----> |  Edge  |                           |   Zone A  |
-+----------+         | router |                           \-----------/
-                     +--------+
-                          |
-                          |
-                          v
-                      +--------+         +--------+
-                      |  Mesh  | +-----> |  Mesh  |
-                      | router |         | broker |
-                      +--------+         +--------+
-                          |
-                          |
-                          |
-                          v
-                      +--------+  link   +--------+       /-----------\
-                      |  Mesh  | +-----> |  Mesh  |       |   Zone B  |
-                      | router |         | broker |       \-----------/
-                      +--------+         +--------+
-                           |
-                           |
-                           v
-                      +--------+  add q  +------------+
-                      |  Edge  | +-----> |  Consumer  |
-                      | router |         +------------+
-                      +--------+
-....
+image::images/usecase-3.png[]
 
 So the flow will be from Edge Router (Zone A) -> Mesh Router (Zone A) -> Mesh Router (Zone B) -> Mesh Broker (Zone B) -> Edge Router (Zone B)
 
