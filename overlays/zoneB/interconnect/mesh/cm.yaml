@@ -196,7 +196,7 @@ data:
         direction: out
         connection: zone-b-mesh-amq-broker
     }
-
+    # for the zoneB broker
     linkRoute {
         name: telemetry.cortex.train.window.applicatienaam1.zone-b.in
         pattern: telemetry.cortex.train.window.applicatienaam1.zone-b

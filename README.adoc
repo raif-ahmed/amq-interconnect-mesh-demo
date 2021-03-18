@@ -1076,3 +1076,50 @@ JmsConnectionFactory connectionFactory1 = new JmsConnectionFactory();
     usecase4QueueExecutor.execute(usecase4QueueProducer);
 
 ----
+
+In
+
+.overlays/zoneA/interconnect/mesh/cm.yaml
+[source,yaml]
+----
+...
+# for the fuse consumer
+address {
+    prefix: telemetry.cortex.train.window.applicatienaam1
+    distribution: closest
+}
+# for the zoneA broker
+linkRoute {
+    name: telemetry.cortex.train.window.applicatienaam1.zone-a.in
+    pattern: telemetry.cortex.train.window.applicatienaam1.zone-a
+    direction: in
+    connection: zone-a-mesh-amq-broker
+}
+linkRoute {
+    name: telemetry.cortex.train.window.applicatienaam1.zone-a.out
+    pattern: telemetry.cortex.train.window.applicatienaam1.zone-a
+    direction: out
+    connection: zone-a-mesh-amq-broker
+}
+...
+----
+
+.overlays/zoneB/interconnect/mesh/cm.yaml
+[source,yaml]
+----
+...
+# for the zoneB broker
+linkRoute {
+    name: telemetry.cortex.train.window.applicatienaam1.zone-b.in
+    pattern: telemetry.cortex.train.window.applicatienaam1.zone-b
+    direction: in
+    connection: zone-b-mesh-amq-broker
+}
+linkRoute {
+    name: telemetry.cortex.train.window.applicatienaam1.zone-b.out
+    pattern: telemetry.cortex.train.window.applicatienaam1.zone-b
+    direction: out
+    connection: zone-b-mesh-amq-broker
+}
+...
+----

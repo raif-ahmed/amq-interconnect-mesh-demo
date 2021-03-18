@@ -207,14 +207,12 @@ data:
         direction: in
     }
 
-    address {
-        prefix: telemetry.cortex.train.window
-        distribution: closest
-    }
+    # for the fuse consumer
     address {
         prefix: telemetry.cortex.train.window.applicatienaam1
         distribution: closest
     }
+    # for the zoneA broker
     linkRoute {
         name: telemetry.cortex.train.window.applicatienaam1.zone-a.in
         pattern: telemetry.cortex.train.window.applicatienaam1.zone-a
