@@ -1077,7 +1077,7 @@ JmsConnectionFactory connectionFactory1 = new JmsConnectionFactory();
 
 ----
 
-In
+The Interconnect configurations 
 
 .overlays/zoneA/interconnect/mesh/cm.yaml
 [source,yaml]
