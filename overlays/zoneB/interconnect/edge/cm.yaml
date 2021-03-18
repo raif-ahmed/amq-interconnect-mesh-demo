@@ -64,22 +64,6 @@ data:
 
     }
     connector {
-        name: zone-b-edge-amq-broker
-
-        # port: amqps
-        # saslMechanisms: EXTERNAL
-        # sslProfile: broker_tls
-
-        host: edge-broker-amqp-0-svc.broker-edge.svc.cluster.local
-        port: 5672
-        saslMechanisms: PLAIN
-        saslUsername: admin
-        saslPassword: admin
-
-        role: route-container
-        verifyHostname: false
-    }
-    connector {
         name: wal-amq-broker
 
         # port: amqps

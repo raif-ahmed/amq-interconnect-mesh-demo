@@ -207,19 +207,26 @@ data:
         direction: in
     }
 
+    address {
+        prefix: telemetry.cortex.train.window
+        distribution: closest
+    }
+    address {
+        prefix: telemetry.cortex.train.window.applicatienaam1
+        distribution: closest
+    }
     linkRoute {
-        name: rh.usecase.4.zone-a.in
-        pattern: rh/usecase/4/*
+        name: telemetry.cortex.train.window.applicatienaam1.zone-a.in
+        pattern: telemetry.cortex.train.window.applicatienaam1.zone-a
         direction: in
         connection: zone-a-mesh-amq-broker
     }
     linkRoute {
-        name: rh.usecase.4.zone-a.out
-        pattern: rh/usecase/4/*
+        name: telemetry.cortex.train.window.applicatienaam1.zone-a.out
+        pattern: telemetry.cortex.train.window.applicatienaam1.zone-a
         direction: out
         connection: zone-a-mesh-amq-broker
     }
-
     policy {
         enableVhostPolicy: true
         enableVhostNamePatterns: true

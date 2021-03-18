@@ -20,6 +20,7 @@
 ** https://access.redhat.com/documentation/en-us/red_hat_amq/2021.q1/html/using_amq_interconnect/index[]
 ** https://qpid.apache.org/releases/qpid-dispatch-1.15.0/user-guide/index.html[]
 ** https://qpid.apache.org/releases/qpid-dispatch-1.15.0/man/qdrouterd.conf.html[]
+** https://access.redhat.com/documentation/en-us/red_hat_fuse/7.8/html-single/fuse_on_openshift_guide/index
 
 
 .*Sample Code:*
@@ -1001,4 +1002,77 @@ for (int i=0;i<producerCount;i++)
 // Generate Consumers on the previously defined dummy queue
 for (int i=0;i<consumerCount;i++)
 	usecase2QueueExecutor.execute(usecase3QueueConsumer1);
+----
+
+=== Usecase 4 - Utilize Fuse (Camel) to implement more complex integration
+So what is the problem we are trying to solve,
+Basically we want to produce messages to broker in one region,
+and messages transmitted to other brokers in other region *in order*.
+The idea is we can have locality (affinity) of consumers (Consumers consumes from brokers in same region).
+
+To solve this problem, I'm going to use two things;
+
+. Fuse/Camel for linking systems together. Camel/Fuse is a versatile open-source integration
+framework based on known Enterprise Integration Patterns (EIP).
+Camel have many EIP components that makes linking/wiring systems much easier and avoid boilerplate code.
++
+For this usecase we will use 2 components
++
+.. https://access.redhat.com/documentation/en-us/red_hat_fuse/7.8/html-single/apache_camel_development_guide/index#MsgRout-RecipientList[Recipient List pattern]
+.. https://access.redhat.com/documentation/en-us/red_hat_fuse/7.8/html/apache_camel_component_reference/gzip-dataformat[GZip message compression and de-compression]
++
+. Link Routing so when Fuse produce, we will have ordered messages to brokers.
+
+So let have a look at the message flow diagram
+
+image::images/usecase-4.png[]
+
+The idea is that the fuse is the AMQP consumer for the address "telemetry.cortex.train.window.applicatienaam1",
+once message is recieved it will compress it (gzip) and produce it in parallel to two addresses "telemetry.cortex.train.window.applicatienaam1.zone-a", "telemetry.cortex.train.window.applicatienaam1.zone-b"
+
+.https://raw.githubusercontent.com/rahmed-rh/jms-amqp-demo/main/fuse-amq-amqps-sample/src/main/java/com/redhat/demo/rahmed/AMQPDemo.java[src/main/java/com/redhat/demo/rahmed/AMQPDemo.java]
+[source,java]
+----
+from(getSourceName())
+		.routeId("route-from-queue-consumer").streamCaching().tracing()
+			.log("Recieved Message ${body} from Address " + getSourceName())
+		.marshal().gzip() // use gzip to compress the message text
+		.setExchangePattern(ExchangePattern.InOnly)
+		.recipientList() // distribute message to all recipients in parallel
+			.constant(getDestinationName())
+			.parallelProcessing()
+			.log(String.format("Calling ${in.header.%s}", Exchange.RECIPIENT_LIST_ENDPOINT))
+
+		.end();
+----
+
+.https://raw.githubusercontent.com/rahmed-rh/jms-amqp-demo/main/fuse-amq-amqps-sample/src/main/resources/application.properties[src/main/resources/application.properties]
+[source,properties]
+----
+address.source-name=amqp:queue:telemetry.cortex.train.window.applicatienaam1
+address.destination-name=amqp:queue:telemetry.cortex.train.window.applicatienaam1.zone-a,amqp:queue:telemetry.cortex.train.window.applicatienaam1.zone-b
+----
+
+Now the External client is producing to "telemetry.cortex.train.window.applicatienaam1", have no idea that his message will be redisruted to both "amqp:queue:telemetry.cortex.train.window.applicatienaam1.zone-a", "amqp:queue:telemetry.cortex.train.window.applicatienaam1.zone-b"
+
+.https://raw.githubusercontent.com/rahmed-rh/jms-amqp-demo/main/jms-amqp-demo/src/main/java/com/redhat/rahmed/jms/Usecase4.java[src/main/java/com/redhat/rahmed/jms/Usecase4.java]
+[source,java]
+----
+JmsConnectionFactory connectionFactory1 = new JmsConnectionFactory();
+  connectionFactory1.setRemoteURI(
+    String.format("%s?%s", zoneAUrl, "failover.reconnectDelay=2000&failover.maxReconnectAttempts=-1&failover.warnAfterReconnectAttempts=10&failover.startupMaxReconnectAttempts=3"));
+  connectionFactory1.setUsername("admin@amq-interconnect-edge");
+  connectionFactory1.setPassword("admin");
+
+  String usecase4ProducerQueueName="telemetry.cortex.train.window.applicatienaam1";
+
+  JMSProducer usecase4QueueProducer = new JMSProducer(connectionFactory1, usecase4ProducerQueueName,false);
+
+  Executor usecase4QueueExecutor = Executors.newFixedThreadPool(consumerCount+producerCount);
+
+
+  // Generate Producers on any dummy queue, it should be auto-created
+  for (int i=0;i<producerCount;i++)
+    usecase4QueueExecutor.execute(usecase4QueueProducer);
+
 ----

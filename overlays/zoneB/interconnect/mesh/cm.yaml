@@ -198,14 +198,14 @@ data:
     }
 
     linkRoute {
-        name: rh.usecase.4.zone-b.in
-        pattern: rh/usecase/4/*
+        name: telemetry.cortex.train.window.applicatienaam1.zone-b.in
+        pattern: telemetry.cortex.train.window.applicatienaam1.zone-b
         direction: in
         connection: zone-b-mesh-amq-broker
     }
     linkRoute {
-        name: rh.usecase.4.zone-b.out
-        pattern: rh/usecase/4/*
+        name: telemetry.cortex.train.window.applicatienaam1.zone-b.out
+        pattern: telemetry.cortex.train.window.applicatienaam1.zone-b
         direction: out
         connection: zone-b-mesh-amq-broker
     }
