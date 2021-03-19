@@ -6,4 +6,4 @@ generatorOptions:
 
 resources:
   - interconnect
-  - broker
+  # - broker
