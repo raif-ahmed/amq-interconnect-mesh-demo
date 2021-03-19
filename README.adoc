@@ -1071,7 +1071,7 @@ JmsConnectionFactory connectionFactory1 = new JmsConnectionFactory();
   Executor usecase4QueueExecutor = Executors.newFixedThreadPool(consumerCount+producerCount);
 
 
-  // Generate Producers on any dummy queue, it should be auto-created
+  // Generate Producers 
   for (int i=0;i<producerCount;i++)
     usecase4QueueExecutor.execute(usecase4QueueProducer);
 
